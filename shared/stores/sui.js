@@ -47,7 +47,7 @@ export const useSuiStore = defineStore('sui', {
 			return timecapsule;
 		},
 		async getSuiBalance() {
-			if (this.amount_sui_time) {
+			if (this.amount_sui_time && this.amount_sui) {
 				const now = (new Date()).getTime();
 				if ((now - this.amount_sui_time) < this.amount_sui_timeout) {
 					return this.amount_sui;
@@ -124,6 +124,7 @@ export const useSuiStore = defineStore('sui', {
 					this.address = null;
 				}
 				if (suiMaster.connectedChain) {
+					
 					Log.tag('$store.sui').info('got suiMaster connected to ', suiMaster.connectedChain);
 					this.connectedChain = suiMaster.connectedChain;
 					this.timeCapsuleContract = new TimeCapsuleContract({

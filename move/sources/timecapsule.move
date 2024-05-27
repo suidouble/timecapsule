@@ -23,6 +23,9 @@ module timecapsule::timecapsule {
     use sui::coin::{Self, Coin};
     use sui::event;
 
+    // Trting to mint time capsule with invalid dround signature
+    const EInvalidRound: u64 = 3;
+
     // Trting to unwrap time capsule with invalid dround signature
     const EInvalidRoundSignature: u64 = 2;
 
@@ -86,14 +89,14 @@ module timecapsule::timecapsule {
         ];
 
         let values = vector[
-            utf8(b"Prophecy {uncompressed_text}"),
+            utf8(b"TimeCapsule"),
             utf8(b"https://github.com/suidouble/suidouble_metadata"),
-            utf8(b"https://suidouble.github.io/dl/promise.png"),
-            utf8(b"{uncompressed_text}"),
+            utf8(b"https://suidouble.github.io/hexcapsule/capsule.png"),
+            utf8(b"{prophecy}"),
             // Project URL is usually static
             utf8(b"https://github.com/suidouble/suidouble_metadata"),
             // Creator field can be any
-            utf8(b"SuiDouble")
+            utf8(b"HexCapsule")
         ];
 
         // Get a new `Display` object for the `Color` type.
@@ -136,6 +139,10 @@ module timecapsule::timecapsule {
 
 
     public entry fun mint(store: &mut TimecapsuleStore, encrypted_prophecy: vector<u8>, for_round: u64, ctx: &mut TxContext) {
+        if (for_round < 1) {
+            abort EInvalidRound
+        };
+        
         let timecapsule = Timecapsule{
             id: object::new(ctx),
             encrypted_prophecy: encrypted_prophecy,
@@ -159,6 +166,10 @@ module timecapsule::timecapsule {
     }
 
     public entry fun mint_with_sui(store: &mut TimecapsuleStore, encrypted_prophecy: vector<u8>, for_round: u64, coin: Coin<SUI>, ctx: &mut TxContext) {
+        if (for_round < 1) {
+            abort EInvalidRound
+        };
+        
         let timecapsule = Timecapsule{
             id: object::new(ctx),
             encrypted_prophecy: encrypted_prophecy,

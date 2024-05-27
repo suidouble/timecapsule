@@ -135,8 +135,8 @@ export default class TimeCapsule {
     get prophecy() {
         if (this.decrypted && this._suiObject.fields && this._suiObject.fields.prophecy) {
             // console.error(this._suiObject.fields.prophecy);
-            return String.fromCharCode.apply(null, this._suiObject.fields.prophecy);
-            // return new TextDecoder().decode(this._suiObject.fields.prophecy);
+            // return String.fromCharCode.apply(null, this._suiObject.fields.prophecy);
+            return new TextDecoder().decode(new Uint8Array(this._suiObject.fields.prophecy));
         }
 
         return null;

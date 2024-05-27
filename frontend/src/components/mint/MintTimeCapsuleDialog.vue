@@ -29,10 +29,10 @@
             <q-card-section class="q-pb-xs">
 
                 <div class="row q-col-gutter-md">
-                    <div class="col-12 col-lg-6">
-                        <h6 class="text-h6 q-pb-xs q-mb-xs">Attach Message</h6>
+                    <div class="col-12 col-lg-6 secret_message_div">
+                        <h6 class="text-h6 q-pb-xs q-mb-xs">Attach Message <q-btn @click="onRandom" icon="refresh" color="primary" round outline size="xs" /> </h6>
 
-                        <q-input outlined v-model="message" placeholder="Secret"></q-input>
+                        <q-input outlined autogrow v-model="message" placeholder="Secret"></q-input>
                     </div>
                     <div class="col-12 col-lg-6">
                         <h6 class="text-h6 q-pb-xs q-mb-xs">Attach Sui</h6>
@@ -52,14 +52,14 @@
             </q-card-section>
             <q-card-section class="q-pb-xs q-pt-xs q-mt-xs" style="max-width: 950px; overflow: hidden;">
                     <Transition name="fade">
-                    <div v-if="messageEncryptedHex" class="text-weight-thin  q-pt-sm" style="max-width: 70vw; overflow-wrap: break-word;">
+                    <div v-if="messageEncryptedHex" class="text-weight-thin  q-pt-sm" style="max-width: 70vw; overflow-wrap: break-word; max-height: 200px; overflow-y: hidden;">
                         <h6 class="text-h6 q-pb-xs q-mb-xs">Time Capsule Cipher</h6>
                         {{ messageEncryptedHex }}
                     </div>
                     </Transition>
             </q-card-section>
             <q-card-actions align="center" class="text-primary q-pb-md q-pt-md">
-                <q-btn :disable="!canMint" unelevated color="white" outline label="Mint Time Capsule" size="md" @click="doMint" :loading="isLoading" />
+                <q-btn :disable="!canMint" unelevated color="primary" outline label="Mint Time Capsule" size="md" @click="doMint" :loading="isLoading" />
             </q-card-actions>
             <!-- </q-scroll-area> -->
         </q-card>
@@ -67,6 +67,7 @@
 
 </template>
 <script>
+import SampleProphecies from 'shared/classes/SampleProphecies.js'
 
 export default {
 	name: 'MintTimeCapsuleDialog',
@@ -170,6 +171,9 @@ export default {
         },
 	},
 	methods: {
+        onRandom() {
+            this.message = SampleProphecies.getRandom();
+        },
         async doConnect() {
             this.isLoading = true;
             this.$store.sui.request();
@@ -349,6 +353,10 @@ export default {
         color: var(--text-color) !important;
         font-weight: bold !important;
         font-size: 20px !important;
+}
+
+.secret_message_div .q-field__native {
+        text-align: left;
 }
 
 .mint_popup .q-field__control .text-primary {

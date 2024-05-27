@@ -58,13 +58,14 @@ export default class TimeCapsuleContract {
                     this._timeCapsulesIds[item.id] = timeCapsule;
                     this._timeCapsules.push(timeCapsule);
                 }
-            });
+            }, 50);
             Log.tag('TimeCapsuleContract').info('Timecapsule objects, found: '+foundCount+', added: '+addedCount);
 
         } catch (e) {
             Log.tag('TimeCapsuleContract').error(e);
 
         }
+
 
 
         const paginatedResponseEvents = await this._module.fetchEvents({eventTypeName: 'NewTimecapsuleEvent', order: 'descending'});
@@ -93,6 +94,24 @@ export default class TimeCapsuleContract {
             }
 
         }
+
+
+        this._timeCapsules.sort((a, b) => {
+            if (a.ownedByYou < b.ownedByYou) {
+              return 1;
+            }
+            if (a.ownedByYou > b.ownedByYou) {
+              return -1;
+            }
+            // If property1 is equal, then compare property2
+            if (a.forRound < b.forRound) {
+              return 1;
+            } else {
+                return -1;
+            }
+          });
+
+        // this._timeCapsules = this._timeCapsules.sort((a,b) => (a.forRound > b.forRound) ? -1 : 1);
     }
 
     async initPackage() {

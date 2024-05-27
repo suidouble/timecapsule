@@ -8,6 +8,7 @@
 
         <div class="fit row no-wrap justify-center items-start content-start">
 
+          <q-btn flat type="a" to="/about" label="About" />
           <q-btn flat type="a" href="https://github.com/suidouble/timecapsule" label="GitHub" />
           <q-btn flat type="a" href="https://twitter.com/suidouble" target="_blank" label="Twitter" />
 

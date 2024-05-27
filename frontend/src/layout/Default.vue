@@ -3,7 +3,7 @@
 		<Header @menu="onMenu" />
 
 		<q-page-container>
-			<q-page padding>
+			<q-page padding style="background: black;">
 				<RoutedPage />
 			</q-page>
 		</q-page-container>

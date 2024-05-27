@@ -99,11 +99,15 @@ export default {
         },
         textInterval() {
             if (!this.timecapsule) {
+                clearTimeout(this.__timeout404);
                 this.textOnClock = '';
             } else {
                 if (this.timecapsule.is404) {
-                    this.textOnClock = '404';
+                    this.__timeout404 = setTimeout(()=>{
+                        this.textOnClock = '404';
+                    }, 2000);
                 } else {
+                    clearTimeout(this.__timeout404);
 
 
                     if (this.timecapsule.decrypted) {
@@ -162,6 +166,7 @@ export default {
     },
     beforeUnmount() {
         clearInterval(this.__updateTextInterval);
+        clearTimeout(this.__timeout404);
     },
     mounted() {
 

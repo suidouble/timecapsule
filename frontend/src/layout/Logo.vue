@@ -2,7 +2,7 @@
 
 	<q-chip size="20px" class="non-selectable cursor-pointer text-capitalize" square clickable @click="onClick" style="width: 110px">
 		<q-avatar size="38px" icon="water_drop" font-size="38px" style="transform: rotate(0deg);"></q-avatar>
-		<span class="gt-xs" style="position: absolute; display: block; left: 48px;top: -3px; letter-spacing: 2px;"><span style="font-size: 16px;">sui.time</span></span>
+		<span class="gt-xs" style="position: absolute; display: block; left: 48px;top: -3px; letter-spacing: 2px;"><span style="font-size: 16px;">hex.</span></span>
 		<span class="gt-xs" style="position: absolute; line-height: 18px; display: block; left: 48px;top: 17px; letter-spacing: 2.6px;"><span style="font-size: 16px;">capsule</span></span>
 	</q-chip>
 
