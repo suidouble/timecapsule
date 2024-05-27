@@ -1,0 +1,25 @@
+:root {
+  --text-color: #19487e;
+  --text-color-dark: #ffffff;
+
+  --link-color: #000000;
+  --link-color-dark: #ffffff;
+
+  --back-color: #000000;
+
+  --brand-color: #ffffff;
+  --brand-border-color: #b30000;
+
+  --brand-back-filter: blur(3px);
+
+  --brand-header-color-dark: #000000ee;
+  --brand-footer-color-dark: #000000ee;
+
+  --brand-header-color: linear-gradient(to right,#fff,rgba(48, 164, 223, 0.623));
+  --brand-footer-color: #ad810755;
+
+
+  --on-brand-text-color: #031830;
+  --on-brand-text-color-dark: #ffffff;
+}
+

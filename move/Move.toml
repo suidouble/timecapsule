@@ -1,0 +1,13 @@
+[package]
+name = "timecapsule"
+version = "0.0.1"
+edition = "2024.beta"
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "mainnet" }
+SuiSystem = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-system", rev = "mainnet" }
+
+[addresses]
+timecapsule =  "0x0"
+sui =  "0000000000000000000000000000000000000000000000000000000000000002"
+sui_system =  "0000000000000000000000000000000000000000000000000000000000000003"
