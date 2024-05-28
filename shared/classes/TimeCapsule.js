@@ -12,12 +12,20 @@ export default class TimeCapsule {
         console.error(this._suiObject);
     }
 
+
     get is404() {
         if (!this.forRound) {
             return true;
         }
 
         return false;
+    }
+
+    get level() {
+        if (this._suiObject && this._suiObject.fields && this._suiObject.fields.level) {
+            return this._suiObject.fields.level;
+        }
+        return 0;        
     }
 
     get contentSuiAmount() {
@@ -61,7 +69,7 @@ export default class TimeCapsule {
     }
 
     get urlOnExplorer() {
-        return 'https://'+(this.suiMaster.connectedChain).split('sui:').join('')+'.suivision.xyz/object/'+this.id+'?tab=Fields';
+        return 'https://'+(this.suiMaster.connectedChain).split('sui:').join('').split('mainnet').join('www')+'.suivision.xyz/object/'+this.id+'?tab=Fields';
     }
 
     get ownerUrlOnExplorer() {
@@ -136,7 +144,9 @@ export default class TimeCapsule {
         if (this.decrypted && this._suiObject.fields && this._suiObject.fields.prophecy) {
             // console.error(this._suiObject.fields.prophecy);
             // return String.fromCharCode.apply(null, this._suiObject.fields.prophecy);
-            return new TextDecoder().decode(new Uint8Array(this._suiObject.fields.prophecy));
+            // return new TextDecoder().decode(new Uint8Array(this._suiObject.fields.prophecy));
+
+            return this._suiObject.fields.prophecy;
         }
 
         return null;
@@ -203,6 +213,53 @@ export default class TimeCapsule {
         await this.suiMaster.objectStorage.fetchObjects();
 
         this._suiObject = obj;
+    }
+
+    async getStoredBuckAmount() {
+        if (this.contract && this.contract.tokens && this.contract.tokens.buck) {
+            return await this.getStoredCoinAmount({ coinType: this.contract.tokens.buck });
+        }
+    }
+
+    async getStoredFUDAmount() {
+        if (this.contract && this.contract.tokens && this.contract.tokens.fud) {
+            return await this.getStoredCoinAmount({ coinType: this.contract.tokens.fud });
+        }
+    }
+
+    async getStoredCoinAmount(params = {}) {
+        // "c797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN"
+        // console.log(params);
+        const coinType = params.coinType;// '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN';
+        const coin = await this.suiMaster.suiCoins.get(coinType);
+        await coin.getMetadata();
+
+        const SuiObject = this.suiMaster.SuiObject;
+        const bagId = this._suiObject.fields.object_bag.fields.id.id;
+
+        const objectBag = new SuiObject({id: bagId, suiMaster: this.suiMaster});
+        const objectBagFields = await objectBag.getDynamicFields();
+
+        let amount = 0;
+        await objectBagFields.forEach(async(field)=>{
+            if (field) {
+                if (field.name && field.name.value) {
+                    if (field.name.value == coinType ||
+                        field.name.value == coinType.split('0x').join('')) {
+                            const obj = new SuiObject({id: field.objectId, suiMaster: this.suiMaster});
+                            await obj.fetchFields();
+                            console.error(obj);
+                            console.error(coin.amountToString(obj.fields.balance));
+
+                            amount = coin.amountToString(obj.fields.balance);
+                        }
+                }
+            }
+
+            console.error(field);
+        });
+
+        return amount;
     }
 }
 

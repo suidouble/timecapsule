@@ -1,12 +1,12 @@
 <template>
 
-    <div @click="onClick" style="cursor: pointer;" v-if="!hideEverything">
+    <div @click="onClick" style="cursor: pointer; border-radius: 200px; overflow: hidden;" v-if="!hideEverything">
         <canvas ref="canvas" id="canvas" width="400" height="400"></canvas>
     </div>
 
 </template>
 <script>
-
+import { colors } from 'quasar';
 
 export default {
 	name: 'ParticleClocks2',
@@ -14,6 +14,10 @@ export default {
         text: {
             type: String,
             default: "",
+        },
+        color: {
+            type: String,
+            default: '#FFFFFF',
         },
 	},
     watch: {
@@ -25,6 +29,9 @@ export default {
             clearTimeout(this.__intoTimeout5);
             clearTimeout(this.__intoTimeout6);
             this.setText(this.text);
+        },
+        color() {
+            this.setColor(this.color);
         },
     },
 	components: {
@@ -49,6 +56,12 @@ export default {
         setText(str) {
             if (this._setText) {
                 this._setText(str);
+            }
+        },
+        setColor(color) {
+            if (this._changeColor) {
+                const parsed = colors.textToRgb(color);
+                this._changeColor(parsed.r,parsed.g,parsed.b);
             }
         },
         timeText() {
@@ -76,6 +89,25 @@ export default {
 
                 this.hideEverything = true;
             };
+            var data = null;
+            var bit = null;
+            let wasColorSet = false;
+
+            this._changeColor = (r,g,b)=>{
+                if (wasColorSet) {
+                    cc.fillStyle = 'rgba('+r+','+g+','+b+',0.9)';
+                } else {
+                    cc.fillStyle = 'rgba('+r+','+g+','+b+',0.1)';
+                    wasColorSet = true;
+                }
+                cc.fillRect(0, 0, _width, _height);
+                bit = cc.getImageData(0, 0, _width, _height);
+                console.error(data);
+                data = bit.data;
+                console.error(data);
+                cc.clearRect(0, 0, _width, _height);
+                cc.fillStyle = "rgb(255, 255, 255)";
+            };
                         
             var FPS = 50;
             var _width = 400;
@@ -94,12 +126,13 @@ export default {
             ct.height = canvas.height = _height;
 
             var cc = canvas.getContext("2d");
-            cc.fillStyle = 'rgba(255,255,255,0.01)';
-            cc.fillRect(0, 0, _width, _height);
-            var bit = cc.getImageData(0, 0, _width, _height);
-            var data = bit.data;
-            cc.clearRect(0, 0, _width, _height);
-            cc.fillStyle = "rgb(255, 255, 255)";
+            this._changeColor(255,255,255);
+            // cc.fillStyle = 'rgba(255,255,255,0.01)';
+            // cc.fillRect(0, 0, _width, _height);
+            // var bit = cc.getImageData(0, 0, _width, _height);
+            // var data = bit.data;
+            // cc.clearRect(0, 0, _width, _height);
+            // cc.fillStyle = "rgb(255, 255, 255)";
 
             var updateState = false;
             var textData;
@@ -312,6 +345,12 @@ export default {
         this.$nextTick(()=>{
             this.init();
             this.setText(this.text);
+            if (this.color && this.color != '#FFFFFF') {
+                setTimeout(()=>{
+                    this.setColor(this.color);
+                }, 100);
+            }
+
             if (!this.text) {
                 this.intro();
             }

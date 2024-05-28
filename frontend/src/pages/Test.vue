@@ -21,6 +21,12 @@
         </div>
         <div class="col-2">
 
+            <q-btn outline square color="primary" label="Collect" @click="collect" />
+
+            <q-btn outline square color="primary" label="Ask" @click="ask" />
+
+            <AskAmountDialog ref="askAmountDialog" />
+
         </div>
     </div>
 
@@ -43,6 +49,7 @@
 
 <script>
 import ParticleClocks2 from 'shared/components/ParticleClocks/ParticleClocks2.vue';
+import AskAmountDialog from '../components/ask_amount_dialog/AskAmountDialog.vue';
 
 export default {
 	name: 'test',
@@ -51,6 +58,7 @@ export default {
 	},
     components: {
         ParticleClocks2,
+        AskAmountDialog,
     },
 	data() {
 		return {
@@ -61,6 +69,16 @@ export default {
     watch: {
     },
 	methods: {
+        async ask() {
+            const amount = await this.$refs.askAmountDialog.ask({
+                coinType: '0xce7ff77a83ea0cb6fd39bd8748e2ec89a3f41e8efdc3f4eb123e0ca37b184db2::buck::BUCK',
+                // coinType: '0x76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1::fud::FUD',
+            });
+            alert(amount);
+        },
+        async collect() {
+            await this.$store.sui.timeCapsuleContract.collectFees();
+        }
 	},
     computed: {
         isConnected: function() {

@@ -1,5 +1,8 @@
 #[allow(unused_variable, unused_use)]
 module timecapsule::timecapsule {
+    const VERSION: u64 = 1;
+
+    // use std::string::{Self, utf8, String};
 
     // use suidouble_metadata::metadata;
     use timecapsule::capsule;
@@ -13,7 +16,7 @@ module timecapsule::timecapsule {
     // use sui::test_scenario as ts;
     // use sui::test_utils as sui_tests;
     use sui::balance::{Self, Balance};
-    use std::string::{utf8};
+    use std::string::{utf8, String};
     use sui::display;
     use sui::package;
     use sui::object_bag;
@@ -30,9 +33,15 @@ module timecapsule::timecapsule {
     const EInvalidRoundSignature: u64 = 2;
 
     // To put coin into timecapsule, you have to use put_coin_to_bag method
-    const EPutCoinWithItsMethod: u64 = 1;
+    // const EPutCoinWithItsMethod: u64 = 1;
 
+    // Trying to mint with too few sui to cover the fees
+    const ENotEnoughSui: u64 = 4;
 
+    const EWrongVersion: u64 = 5;
+
+    // You can not take objects out of bag of encrypted capsule
+    const ENotDecryptedYet: u64 = 6;
 
     public struct TIMECAPSULE has drop {} /// One-Time-Witness for the module.
 
@@ -54,9 +63,14 @@ module timecapsule::timecapsule {
 
     public struct TimecapsuleStore has key {
         id: UID,
+        version: u64,
         fee: Balance<SUI>,
+        fee_permyriad: u256, // 0.01% * fee_permyriad to be taken as a fee on mint
+        fee_static: u256,    // minimum sui amount to be taken as fee
+        fee_bag: object_bag::ObjectBag,
+        fee_token_permyriad: u256, // 0.01% * fee_permyriad to be taken as a fee on putting coins into bag
         count_minted: u256,
-        metadata: vector<u8>
+        meta: vector<u8>
     }
 
     public struct AdminCap has key {  // admin capability. Take care of this object. Issued to the creator on the package publishing
@@ -66,12 +80,15 @@ module timecapsule::timecapsule {
     public struct Timecapsule has key, store {
         id: UID,
         encrypted_prophecy: vector<u8>,
-        prophecy: vector<u8>,
+        prophecy: String,
+        image: String,
         for_round: u64,
         decrypted: bool,
         object_bag: object_bag::ObjectBag,
         sui: Balance<SUI>,
-        metadata: vector<u8>
+        meta: vector<u8>,
+
+        level: u64,
     }
 
     fun init(otw: TIMECAPSULE, ctx: &mut TxContext) {
@@ -90,11 +107,11 @@ module timecapsule::timecapsule {
 
         let values = vector[
             utf8(b"TimeCapsule"),
-            utf8(b"https://github.com/suidouble/suidouble_metadata"),
-            utf8(b"https://suidouble.github.io/hexcapsule/capsule.png"),
+            utf8(b"https://hexcapsule.com/capsule/{id}"),
+            utf8(b"{image}"),
             utf8(b"{prophecy}"),
             // Project URL is usually static
-            utf8(b"https://github.com/suidouble/suidouble_metadata"),
+            utf8(b"https://hexcapsule.com/"),
             // Creator field can be any
             utf8(b"HexCapsule")
         ];
@@ -119,7 +136,14 @@ module timecapsule::timecapsule {
             id: object::new(ctx),
             fee: balance::zero(),
             count_minted: 0,
-            metadata: vector::empty()
+            meta: vector::empty(),
+            version: VERSION,
+
+            fee_permyriad: 50,      // 0.5%
+            fee_static: 100_000_000,  // + 0.1 SUI
+
+            fee_bag: object_bag::new(ctx),
+            fee_token_permyriad: 100, // 1%
         };
         event::emit(NewStoreEvent {
             id: object::uid_to_inner(&timecapsule_store.id),
@@ -138,47 +162,35 @@ module timecapsule::timecapsule {
     }
 
 
-    public entry fun mint(store: &mut TimecapsuleStore, encrypted_prophecy: vector<u8>, for_round: u64, ctx: &mut TxContext) {
+    public entry fun mint_with_sui(store: &mut TimecapsuleStore, encrypted_prophecy: vector<u8>, for_round: u64, mut coin: Coin<SUI>, ctx: &mut TxContext) {
+        assert!(store.version == VERSION, EWrongVersion);
+
         if (for_round < 1) {
             abort EInvalidRound
         };
         
+        // take a fee
+        let coin_value = coin::value(&coin);
+        let fee_amount = ((store.fee_static + (((coin_value as u256) * store.fee_permyriad) / 10000u256)) as u64);
+        if (coin_value < fee_amount) {
+            abort ENotEnoughSui
+        };
+
+        let fee_coin = coin::split(&mut coin, fee_amount, ctx);
+        coin::put(&mut store.fee, fee_coin);
+
         let timecapsule = Timecapsule{
             id: object::new(ctx),
             encrypted_prophecy: encrypted_prophecy,
-            prophecy: vector::empty(),
-            for_round: for_round,
-            decrypted: false,
-            sui: balance::zero(),
-            object_bag: object_bag::new(ctx),
-            metadata: vector::empty()
-        };
-
-        event::emit(NewTimecapsuleEvent {
-            id: object::uid_to_inner(&timecapsule.id),
-            sui: 0,
-            for_round: for_round,
-        });
-
-        store.count_minted = store.count_minted + 1;
-
-        transfer::transfer(timecapsule, tx_context::sender(ctx));
-    }
-
-    public entry fun mint_with_sui(store: &mut TimecapsuleStore, encrypted_prophecy: vector<u8>, for_round: u64, coin: Coin<SUI>, ctx: &mut TxContext) {
-        if (for_round < 1) {
-            abort EInvalidRound
-        };
-        
-        let timecapsule = Timecapsule{
-            id: object::new(ctx),
-            encrypted_prophecy: encrypted_prophecy,
-            prophecy: vector::empty(),
+            prophecy: utf8(b"secret"),
+            image: utf8(b"https://suidouble.github.io/hexcapsule/capsule.png"),
             for_round: for_round,
             decrypted: false,
             sui: coin::into_balance(coin),
             object_bag: object_bag::new(ctx),
-            metadata: vector::empty()
+            meta: vector::empty(),
+
+            level: 0,
         };
 
         event::emit(NewTimecapsuleEvent {
@@ -192,56 +204,17 @@ module timecapsule::timecapsule {
         transfer::transfer(timecapsule, tx_context::sender(ctx));
     }
 
-    public entry fun put_sui(timecapsule: &mut Timecapsule, coin: Coin<SUI>, _ctx: &mut TxContext) {
-        // take a fee
-        // let coin_value = coin::value(&coin);
-        // let fee_value = ( coin_value / 10 );
-        // let fee_coin = coin::split(&mut coin, fee_value, ctx);
 
+    public entry fun decrypt(store: &TimecapsuleStore, timecapsule: &mut Timecapsule, round_signature: vector<u8>, ctx: &mut TxContext) {
+        assert!(store.version == VERSION, EWrongVersion);
 
-        coin::put(&mut timecapsule.sui, coin);
-
-        event::emit(NewTimecapsuleEvent {
-            id: object::uid_to_inner(&timecapsule.id),
-            sui: balance::value(&timecapsule.sui),
-            for_round: timecapsule.for_round
-        });
-        // balance::join(&mut timecapsule.sui, coin);
-    }
-
-    // public entry fun put_to_bag<V: store + key>(timecapsule: &mut Timecapsule, v: V, _ctx: &mut TxContext) {
-    //     let typen = type_name::get<V>();
-
-    //     // do not accept coin here, for coin use put_coin_to_bag method
-    //     if (type_name::get_module(&typen).as_bytes() == b"coin") {
-    //         abort EPutCoinWithItsMethod
-    //     };
-
-    //     let item_to_bag_index = object_bag::length(&timecapsule.object_bag);
-    //     timecapsule.object_bag.add(item_to_bag_index, v);
-    // }
-
-    // public entry fun put_coin_to_bag<T>(timecapsule: &mut Timecapsule, coin: Coin<T>, ctx: &mut TxContext) {
-    //     // take a fee
-    //     // let coin_value = coin::value(&coin);
-    //     // let fee_value = ( coin_value / 10 );
-    //     // let fee_coin = coin::split(&mut coin, fee_value, ctx);
-
-
-    //     let id = object::id_bytes(&coin);
-
-    //     let item_to_bag_index:u64 = object_bag::length(&timecapsule.object_bag);
-    //     timecapsule.object_bag.add(item_to_bag_index, coin);
-    // }
-
-    public entry fun decrypt(timecapsule: &mut Timecapsule, round_signature: vector<u8>, ctx: &mut TxContext) {
         let mut drand = capsule::drand_quicknet();
         if (drand.verify_signature(timecapsule.for_round, &round_signature) == false) {
             abort EInvalidRoundSignature
         };
 
         // decrypt a prophecy
-        timecapsule.prophecy = drand.decrypt(&timecapsule.encrypted_prophecy, round_signature);
+        timecapsule.prophecy = utf8(drand.decrypt(&timecapsule.encrypted_prophecy, round_signature));
         timecapsule.decrypted = true;
 
         // take out a sui
@@ -257,12 +230,83 @@ module timecapsule::timecapsule {
         });
     }
 
-    // public entry fun collect<V: key + store>(timecapsule: &mut Timecapsule, ctx: &mut TxContext) {
-    //     if (timecapsule.decrypted) {
-    //         let items_count = object_bag::length(&timecapsule.object_bag);
-    //         let item = object_bag::remove<u64,V>(&mut timecapsule.object_bag, (items_count - 1));
-    //         transfer::public_transfer(item, tx_context::sender(ctx));
-    //     }
-    // }
+    /**
+    *  Function to collect fees, Executed by admin only.
+    *
+    *      AdminCap only!
+    */
+    public entry fun collect_fees(store: &mut TimecapsuleStore, _admin: &AdminCap, ctx: &mut TxContext) {
+        assert!(store.version == VERSION, EWrongVersion);
 
+        let amount_sui = balance::value(&store.fee);
+        let to_pay_out_sui = coin::take(&mut store.fee, amount_sui, ctx);
+
+        transfer::public_transfer(to_pay_out_sui, tx_context::sender(ctx));
+    }
+    public entry fun collect_coin_fees<T>(store: &mut TimecapsuleStore, _admin: &AdminCap, ctx: &mut TxContext) {
+        assert!(store.version == VERSION, EWrongVersion);
+        let typen = type_name::get<T>();
+        let type_as_string = typen.into_string();
+
+        if (store.fee_bag.contains(type_as_string)) {
+            let coin:Coin<T> = store.fee_bag.remove(type_as_string);
+            transfer::public_transfer(coin, tx_context::sender(ctx));
+        }
+    }
+
+    public entry fun take_out_coin<T>(store: &mut TimecapsuleStore, timecapsule: &mut Timecapsule, ctx: &mut TxContext) {
+        assert!(store.version == VERSION, EWrongVersion);
+
+        if (!timecapsule.decrypted) {
+            abort ENotDecryptedYet
+        };
+
+        let typen = type_name::get<T>();
+        let type_as_string = typen.into_string();
+
+        if (timecapsule.object_bag.contains(type_as_string)) {
+            let coin:Coin<T> = timecapsule.object_bag.remove(type_as_string);
+            transfer::public_transfer(coin, tx_context::sender(ctx));
+        }
+    }
+
+    fun take_coin_fee<T>(store: &mut TimecapsuleStore, coin_mut: &mut Coin<T>, ctx: &mut TxContext) {
+        let typen = type_name::get<T>();
+        let coin_value = coin::value(coin_mut);
+
+        let type_as_string = typen.into_string();
+        let fee_amount = (( (((coin_value as u256) * store.fee_token_permyriad) / 10000u256)) as u64);
+
+        let fee_coin = coin::split(coin_mut, fee_amount, ctx);
+
+        if (store.fee_bag.contains(type_as_string)) {
+            let already_coin:&mut Coin<T> = store.fee_bag.borrow_mut(type_as_string);
+            already_coin.join(fee_coin);
+        } else {
+            store.fee_bag.add(type_as_string, fee_coin);
+        };
+    }
+
+    public entry fun put_coin_to_bag<T>(store: &mut TimecapsuleStore, timecapsule: &mut Timecapsule, mut coin:  Coin<T>, ctx: &mut TxContext) {
+        assert!(store.version == VERSION, EWrongVersion);
+
+        // take a fee
+        take_coin_fee(store, &mut coin, ctx);
+
+        let typen = type_name::get<T>();
+        let type_as_string = typen.into_string();
+
+        if (timecapsule.object_bag.contains(type_as_string)) {
+            let already_coin:&mut Coin<T> = timecapsule.object_bag.borrow_mut(type_as_string);
+            already_coin.join(coin);
+        } else {
+            timecapsule.level = timecapsule.level + 1;
+            if (timecapsule.level == 1) {
+                timecapsule.image = utf8(b"https://suidouble.github.io/hexcapsule/capsule_gold.png");
+            } else if (timecapsule.level == 2) {
+                timecapsule.image = utf8(b"https://suidouble.github.io/hexcapsule/capsule_super.png");
+            };
+            timecapsule.object_bag.add(type_as_string, coin);
+        }
+    }
 }

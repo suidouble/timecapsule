@@ -10,11 +10,12 @@
                 <div style="position: fixed; top: 50vh">
                     <div style="margin-top: -200px;" class="timecapsule_container" :class="{decrypting: isDecrypting}">
 
-                        <ParticleClocks2 :text="textOnClock" @clockclick="onClockClick" />
+                        <!-- <ParticleClocks2 :text="textOnClock" @clockclick="onClockClick" color="#f5c98c" /> -->
+                        <ParticleClocks2 :text="textOnClock" @clockclick="onClockClick" :color="capsuleColor" />
 
-                        <div class="non-selectable content_info" v-if="timecapsule && !timecapsule.is404 && !timecapsule.decrypted" :class="{content_info_visible: showContent}" @click="onClockClick">
+                        <div class="non-selectable content_info" :style="{color: capsuleColor}" v-if="timecapsule && !timecapsule.is404 && !timecapsule.decrypted" :class="{content_info_visible: showContent}" @click="onClockClick">
                             <span v-if="contentSuiAmountAsString">
-                                <q-icon name="water_drop" color="white" /> {{contentSuiAmountAsString}} sui 
+                                <q-icon name="water_drop" :color="capsuleColor" /> {{contentSuiAmountAsString}} sui 
                             </span>
                                 <br />
                             + secret message
@@ -23,16 +24,19 @@
                             
                             {{ timecapsule.prophecy }}
                         </div>
+                        <div class="non-selectable content_info_decrypted" v-if="timecapsule && timecapsule.is404" :class="{content_info_visible: showContent}">
+                            Time Capsule is not found. Switch to other network maybe?
+                        </div>
 
                     </div>
                 </div>
             </div>
 
 
-            <q-dialog v-model="showInfo" position="right" seamless flat square>
+            <q-dialog v-model="showInfo" position="right" seamless flat square v-if="!isDecrypting">
                 <q-card style="width: 350px">
                     <q-linear-progress :value="0.6" color="white" />
-                    <TimecapsuleInfo :timecapsule="timecapsule" />
+                    <TimecapsuleInfo :timecapsule="timecapsule" @refresh="loadInfo" />
 
                 </q-card>
             </q-dialog>
@@ -76,6 +80,8 @@ export default {
             showContent: false,
 
             contentSuiAmountAsString: null,
+
+            capsuleColor: '#FFFFFF',
 		}
 	},
     watch: {
@@ -92,8 +98,12 @@ export default {
         async onClockClick() {
             this.isDecrypting = true;
 
-            await this.timecapsule.decrypt();
-            this.timecapsule.refresh();
+            try {
+                await this.timecapsule.decrypt();
+                this.timecapsule.refresh();
+            } catch(e) {
+                console.error(e);
+            }
 
             this.isDecrypting = false;
         },
@@ -142,6 +152,14 @@ export default {
                 } else {
                     this.contentSuiAmountAsString = null;
                 }
+
+                if (this.timecapsule.level) {
+                    if (this.timecapsule.level == 1) {
+                        this.capsuleColor = '#f5c98c';
+                    } else if (this.timecapsule.level > 1) {
+                        this.capsuleColor = '#8ce5f5';
+                    }
+                }
             }
             this.$log.tag('CapsulePage').info(this.timecapsule);
         },
@@ -155,6 +173,19 @@ export default {
         }
 	},
     computed: {
+        // capsuleColor: function() {
+        //     if (this.timecapsule) {
+        //         if (this.timecapsule.level) {
+        //             if (this.timecapsule.level == 1) {
+        //                 return '#f5c98c';
+        //             } else if (this.timecapsule.level > 1) {
+        //                 return '#8ce5f5';
+        //             }
+        //         }
+        //     }
+
+        //     return '#FFFFFF';
+        // },
         connectionId: function() {
             return this.$store.sui.connectionId;
         },

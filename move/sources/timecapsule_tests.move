@@ -5,11 +5,12 @@ module timecapsule::timecapsule_tests {
 
     #[test_only]
     use sui::test_scenario as ts;
-    #[test_only]
-    use sui::test_utils as sui_tests;
+    // #[test_only]
+    // use sui::test_utils as sui_tests;
 
     use sui::sui::SUI;
-    use sui::coin::{Self, Coin};
+    use sui::coin;
+    // use sui::coin::{Self, Coin};
 
     const TEST_SENDER_ADDR: address = @0x1;
 
@@ -21,7 +22,7 @@ module timecapsule::timecapsule_tests {
     #[test]
     fun test_contract() {
         // Imagine we are running this on May 01 2024
-        let start_timestamp_ms = 1714510800000; // Wed May 01 2024 16:23:14 GMT+0000
+        // let start_timestamp_ms = 1714510800000; // Wed May 01 2024 16:23:14 GMT+0000
 
 
         let mut scenario = ts::begin(TEST_SENDER_ADDR);
@@ -35,8 +36,9 @@ module timecapsule::timecapsule_tests {
         let encrypted = x"0000000000c6000000bc0100370000002900000020e1afbff2c8523861de70fb0bc85fa5fedcbb163e66f501c768cc59ce07201ebc380000002900000020fb2428f4c3c7c82621b00fe6cc370405016804fe9d4aecc2f99497f3c2f7fe7a360000006900000060939b1b6a662aa00a8145ad6817f839a3fd04933725545093613dd4774e0ca1f994de29e2fa781cd6cc2a6a127731997c1383f0da0beeea8529b72bb610bac734e8812f90808e1d04369a51f2a0114f1a55bf5f37af7c16d6a24b00f45e629357";
         let round = 7965511;
 
+        let coin = coin::mint_for_testing<SUI>(1_000_000_000, ts::ctx(&mut scenario));
 
-        timecapsule::mint(&mut store, encrypted, round, ts::ctx(&mut scenario));
+        timecapsule::mint_with_sui(&mut store, encrypted, round, coin, ts::ctx(&mut scenario));
         ts::next_tx(&mut scenario, TEST_SENDER_ADDR);
 
         let mut time_capsule: timecapsule::Timecapsule = ts::take_from_sender(&scenario);
@@ -49,7 +51,7 @@ module timecapsule::timecapsule_tests {
 
 
         let round_signature = x"8378a16d9355f6ab516bd76c3d8d547a30b044624c0832dfa62ae513393ad57cf81cc04dcb1e3200dfb99587734ff97f";
-        timecapsule::decrypt(&mut time_capsule, round_signature, ts::ctx(&mut scenario));
+        timecapsule::decrypt(&store, &mut time_capsule, round_signature, ts::ctx(&mut scenario));
 
 
         ts::next_tx(&mut scenario, TEST_SENDER_ADDR);

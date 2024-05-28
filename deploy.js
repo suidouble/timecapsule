@@ -8,7 +8,11 @@ const run = async()=>{
 
     const suiMaster = new SuiMaster({provider: chain, phrase: phrase, debug: true});
 
-    await suiMaster.requestSuiFromFaucet();
+    try {
+        await suiMaster.requestSuiFromFaucet();
+    } catch (e) {
+        console.error(e);
+    }
     await suiMaster.getBalance();
 
     const package = suiMaster.addPackage({

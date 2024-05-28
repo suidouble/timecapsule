@@ -35,7 +35,7 @@
                         <q-input outlined autogrow v-model="message" placeholder="Secret"></q-input>
                     </div>
                     <div class="col-12 col-lg-6">
-                        <h6 class="text-h6 q-pb-xs q-mb-xs">Attach Sui</h6>
+                        <h6 class="text-h6 q-pb-xs q-mb-xs">Attach Sui <span style="font-size: 10px;">0.1 SUI + 0.5% to be taken as fee</span></h6>
 
 
                         <q-input outlined v-model="amount" placeholder="Sui">
@@ -50,6 +50,9 @@
                 </div>
 
             </q-card-section>
+            <q-card-actions align="center" class="text-primary q-pb-md q-pt-md">
+                <q-btn :disable="!canMint" unelevated color="primary" outline label="Mint Time Capsule" size="md" @click="doMint" :loading="isLoading" />
+            </q-card-actions>
             <q-card-section class="q-pb-xs q-pt-xs q-mt-xs" style="max-width: 950px; overflow: hidden;">
                     <Transition name="fade">
                     <div v-if="messageEncryptedHex" class="text-weight-thin  q-pt-sm" style="max-width: 70vw; overflow-wrap: break-word; max-height: 200px; overflow-y: hidden;">
@@ -58,9 +61,6 @@
                     </div>
                     </Transition>
             </q-card-section>
-            <q-card-actions align="center" class="text-primary q-pb-md q-pt-md">
-                <q-btn :disable="!canMint" unelevated color="primary" outline label="Mint Time Capsule" size="md" @click="doMint" :loading="isLoading" />
-            </q-card-actions>
             <!-- </q-scroll-area> -->
         </q-card>
     </q-dialog>
@@ -271,9 +271,9 @@ export default {
                 this.$q.notify({
                     spinner: true,
                     message: 'Time Capsule minted. Wait a second, we are going to redirect you',
-                    timeout: 2000
+                    timeout: 4000
                 });
-                await new Promise((res)=>setTimeout(res, 2000));
+                await new Promise((res)=>setTimeout(res, 4000));
                 this.$router.push('/capsule/'+timecapsuleId);
             } else {
                 this.$q.notify({
@@ -306,8 +306,15 @@ export default {
         ownedSuiAmount: function() {
             return this.$store.sui.amount_sui_string;
         },
+        enoughSuiForMint: function() {
+            const suiAsFload = parseFloat(this.amount, 10);
+            if (suiAsFload > 0.1) {
+                return true;
+            }
+            return false;
+        },
         canMint: function() {
-            return (!this.messageEncryptionPending && this.messageEncrypted);
+            return (!this.messageEncryptionPending && this.messageEncrypted && this.enoughSuiForMint);
         },
 	},
 	unmounted: function() {

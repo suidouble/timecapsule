@@ -59,6 +59,23 @@
 
 			If you can think of any more cool use cases, <a href="https://twitter.com/suidouble" target="_blank">let us know</a> on twitter.
 		</p>
+
+
+		<p>
+			<strong>Proof on Chain</strong><br/>
+
+			Hex.Capsule encrypts secret messages on the client side, hashing the message for a specific future drand round. It sends only the encrypted message to the blockchain.
+		</p>
+		<p>
+			<span style="background-color: white; display: inline-block;"><img src="/blockchain_secret.png" style="width: 836px; max-width: 90%;" /></span>
+		</p>
+		<p>
+			Once decrypted in the future, it becomes available for everyone to check.
+		</p>
+		<p>
+			<span style="background-color: white; display: inline-block;"><img src="/blockchain_decrypted.png" style="width: 836px; max-width: 90%;" /></span>
+		</p>
+
 		</div>
         <div class="col-2">
         &nbsp;

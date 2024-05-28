@@ -1,12 +1,12 @@
 
 module timecapsule::capsule {
 
-    #[test_only]
-    use sui::clock;
-    #[test_only]
-    use sui::test_scenario;
-    #[test_only]
-    use sui::random;
+    // #[test_only]
+    // use sui::clock;
+    // #[test_only]
+    // use sui::test_scenario;
+    // #[test_only]
+    // use sui::random;
 
     use sui::bcs;
     use timecapsule::metadata;

@@ -17,6 +17,9 @@
             <!-- <q-card-section horizontal> -->
                     <!-- <q-icon name="favorite" color="white" /> -->
                 {{timeCapsule.longDisplayId}}
+
+                <span style="color: #f5c98c" v-if="timeCapsule.level == 1"><q-icon name="star_rate" size="20px" /></span>
+                <span style="color: #8ce5f5" v-if="timeCapsule.level > 1"><q-icon name="star_rate" size="20px" /></span>
             <!-- </q-card-section> -->
         </q-card>
         </RouterLink>

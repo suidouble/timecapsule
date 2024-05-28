@@ -11,11 +11,32 @@ export default class TimeCapsuleContract {
         this._storeId = null;
         this._log = params.log || null;
 
-        if (!this._packageId && this._chain == 'sui:testnet') {
-            this._packageId = '0x0e0eee4f5f47c162a7eb2fc4edd7e9ade611ddd80ee004bd77fd1f04067e16ec';
+        this._tokens = {};
+
+        const chains = {
+            'testnet': {
+                packageId: '0x5642b6ead93e220b692fbae8be0e865c36ec0d06287d6319889757dc58c25448',
+                tokens: {
+                    fud: '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN',
+                    buck: '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN',
+                },
+            },
+            'mainnet': {
+                packageId: '0x020abcd433df2c68f62b794d0751d3a839945dcb6776ecf9fac76d3f0324a274',
+                tokens: {
+                    fud: '0x76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1::fud::FUD',
+                    buck: '0xce7ff77a83ea0cb6fd39bd8748e2ec89a3f41e8efdc3f4eb123e0ca37b184db2::buck::BUCK',
+                },
+            },
+        };
+
+        const chainName = (this._chain).split('sui:').join('');
+        if (chains[chainName]) {
+            this._packageId = chains[chainName].packageId;
+            this._tokens = chains[chainName].tokens;
         }
         
-        Log.tag('TimeCapsuleContract').info('chain', this._chain, 'packageId', this._packageId);
+        Log.tag('TimeCapsuleContract').info('chain', this._chain, 'packageId', this._packageId, 'tokens', this._tokens);
 
         this._moduleName = 'timecapsule';
 
@@ -24,6 +45,10 @@ export default class TimeCapsuleContract {
         this._timeCapsules = [];
         this._timeCapsulesIds = {};
         this._hasMoreTimeCapsules = true;
+    }
+
+    get tokens() {
+        return this._tokens;
     }
 
     get suiMaster() {
@@ -148,12 +173,40 @@ export default class TimeCapsuleContract {
         return null;
     }
 
+    async collectFees() {
+        // find if you own AdminCap
+        Log.tag('TimeCapsuleContract').info('querying AdminCap objects...');
+        const paginatedResponseOwned = await this._module.getOwnedObjects({ typeName: 'AdminCap' });
+        let adminCapId = null;
+        await paginatedResponseOwned.forEach((item)=>{
+            adminCapId = item.id;
+        });
+
+        if (!adminCapId) {
+            Log.tag('TimeCapsuleContract').info('Seems you do not own any AdminCap');
+            return false;
+        }
+
+        const params = [this._storeId, adminCapId];
+        try {
+            Log.tag('TimeCapsuleContract').info('goint to call collect_fees', params);
+            const res = await this._module.moveCall('collect_fees', params);
+            if (res && res.status && res.status == 'success') {
+                return true;
+            }
+        } catch (e) {
+            return false;
+        }
+
+        return false;
+    }
+
     async decrypt(params = {}) {
         const timeCapsuleId = params.timeCapsuleId;
         const roundSignature = params.roundSignature;
 
         try {
-            const params = [timeCapsuleId, String.fromCharCode.apply(null, roundSignature)];
+            const params = [this._storeId, timeCapsuleId, String.fromCharCode.apply(null, roundSignature)];
             Log.tag('TimeCapsuleContract').info('goint to decrypt a capsule: ', params);
             // @todo we'd better check messageEncrypted here somehow
             const res = await this._module.moveCall('decrypt', params);
@@ -169,26 +222,105 @@ export default class TimeCapsuleContract {
         return false;
     }
 
-    async putCoin(params = {}) {
+    async takeOutCoin(params = {}) {
         const timeCapsuleId = params.timeCapsuleId;
+        let coinType = null;
+        if (params.coin == 'fud') {
+            coinType = this.tokens['fud'];
+        }
+        if (params.coin == 'buck') {
+            coinType = this.tokens['buck'];
+        }
+        // const coinType = '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN';
 
         try {
-            const params = [timeCapsuleId, {type: 'SUI', amount: '0.02'}];
-            Log.tag('TimeCapsuleContract').info('goint to put coin into time capsule: ', params);
-            // @todo we'd better check messageEncrypted here somehow
-            const res = await this._module.moveCall('put_coin_to_bag', params);
-            // const res = await this._module.moveCall('mint', [this._storeId, treasury.id, {type: 'SUI', amount: '10.0'}]);
+            Log.tag('TimeCapsuleContract').info('goint to take out token from capsule');
+            const TransactionBlock = this.suiMaster.TransactionBlock;
+            const txBlock = new TransactionBlock();
+            const callArgs = [];
+            callArgs.push(txBlock.pure(this._storeId));
+            callArgs.push(txBlock.pure(timeCapsuleId));
+
+            txBlock.moveCall({
+                target: `${this._module._package.address}::${this._module._moduleName}::take_out_coin`,
+                arguments: callArgs,
+                typeArguments: [coinType],
+            });
+
+            const res = await this._module.moveCall('take_out_coin', {tx: txBlock});
             if (res && res.status && res.status == 'success') {
                 return true;
             }
-
         } catch (e) {
+            console.error(e);
+
+            return false;
+        }
+    } 
+
+    async putCoin(params = {}) {
+        const timeCapsuleId = params.timeCapsuleId;
+        let coinType = params.coinType; // '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN';
+        if (params.coin == 'fud') {
+            coinType = this.tokens['fud'];
+        }        
+        if (params.coin == 'buck') {
+            coinType = this.tokens['buck'];
+        }
+        const amount = params.amount;
+        const ownerAddress = this.suiMaster.address;
+
+        try {
+            Log.tag('TimeCapsuleContract').info('goint to put coin into time capsule');
+            const TransactionBlock = this.suiMaster.TransactionBlock;
+            const txBlock = new TransactionBlock();
+            const callArgs = [];
+            callArgs.push(txBlock.pure(this._storeId));
+            callArgs.push(txBlock.pure(timeCapsuleId));
+
+            const coin = await this._suiMaster.suiCoins.get(coinType);
+            const txCoinToSend = await coin.coinOfAmountToTxCoin(txBlock, ownerAddress, amount);
+            callArgs.push(txCoinToSend);
+
+            txBlock.moveCall({
+                target: `${this._module._package.address}::${this._module._moduleName}::put_coin_to_bag`,
+                arguments: callArgs,
+                typeArguments: [coinType],
+            });
+
+            const res = await this._module.moveCall('put_coin_to_bag', {tx: txBlock});
+            if (res && res.status && res.status == 'success') {
+                return true;
+            }
+        } catch (e) {
+            console.error(e);
+
             return false;
         }
 
         return false;
-
     }
+
+    // async putCoin(params = {}) {
+    //     const timeCapsuleId = params.timeCapsuleId;
+
+    //     try {
+    //         const params = [timeCapsuleId, {type: 'SUI', amount: '0.02'}];
+    //         Log.tag('TimeCapsuleContract').info('goint to put coin into time capsule: ', params);
+    //         // @todo we'd better check messageEncrypted here somehow
+    //         const res = await this._module.moveCall('put_coin_to_bag', params);
+    //         // const res = await this._module.moveCall('mint', [this._storeId, treasury.id, {type: 'SUI', amount: '10.0'}]);
+    //         if (res && res.status && res.status == 'success') {
+    //             return true;
+    //         }
+
+    //     } catch (e) {
+    //         return false;
+    //     }
+
+    //     return false;
+
+    // }
 
     async mint(params = {}) {
         const messageEncrypted = params.messageEncrypted;
