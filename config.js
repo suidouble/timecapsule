@@ -25,5 +25,3 @@ if (argv.phrase) {
 }
 
 module.exports = settings[selectedChain];
-
-// curl --location --request POST 'http://127.0.0.1:9123/gas' --header 'Content-Type: application/json' --data-raw '{"FixedAmountRequest": {"recipient": "0x9e40f545a7d69f1d59c84357a1cf33951bac6f60a9fb6b66e6669188beb4b3a7"}}'

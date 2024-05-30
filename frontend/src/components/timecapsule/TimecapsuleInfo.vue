@@ -143,6 +143,10 @@ export default {
             }
         },
         async attachBuck() {
+            if (!this.isConnected) {
+                await this.$store.sui.request();
+            }
+            
             const amount = await this.$refs.askAmountDialog.ask({
                 coinType: this.$store.sui.timeCapsuleContract.tokens.buck,
                 note: '1% to be taken as fee, rest is availiable for you anytime once capsule is decrypted'
@@ -159,6 +163,11 @@ export default {
             this.$emit('refresh');
         },
         async attachFud() {
+            if (!this.isConnected) {
+                await this.$store.sui.request();
+            }
+            
+
             const amount = await this.$refs.askAmountDialog.ask({
                 coinType: this.$store.sui.timeCapsuleContract.tokens.fud,
                 note: '1% to be taken as fee, rest is availiable for you anytime once capsule is decrypted'
@@ -175,6 +184,11 @@ export default {
             this.$emit('refresh');
         },
         async takeOutFud() {
+            if (!this.isConnected) {
+                await this.$store.sui.request();
+            }
+            
+
             await this.$store.sui.timeCapsuleContract.takeOutCoin({
                 timeCapsuleId: this.timecapsule.id,
                 coin: 'fud',
@@ -184,6 +198,10 @@ export default {
             this.$emit('refresh');
         },
         async takeOutBuck() {
+            if (!this.isConnected) {
+                await this.$store.sui.request();
+            }
+
             await this.$store.sui.timeCapsuleContract.takeOutCoin({
                 timeCapsuleId: this.timecapsule.id,
                 coin: 'buck',
@@ -194,6 +212,9 @@ export default {
         },
 	},
 	computed: {
+        isConnected: function() {
+            return this.$store.sui.address;
+        },
         canUpgradeWithFud: function() {
             if (this.fudAmountAsString && this.fudAmountAsString != '0' && this.fudAmountAsString != '0.0') {
                 return false;

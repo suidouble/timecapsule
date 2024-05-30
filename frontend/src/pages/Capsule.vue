@@ -97,6 +97,10 @@ export default {
 	methods: {
         async onClockClick() {
             this.isDecrypting = true;
+            
+            if (!this.isConnected) {
+                await this.$store.sui.request();
+            }
 
             try {
                 await this.timecapsule.decrypt();
@@ -173,6 +177,9 @@ export default {
         }
 	},
     computed: {
+        isConnected: function() {
+            return this.$store.sui.address;
+        },
         // capsuleColor: function() {
         //     if (this.timecapsule) {
         //         if (this.timecapsule.level) {

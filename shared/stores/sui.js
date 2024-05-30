@@ -103,8 +103,25 @@ export const useSuiStore = defineStore('sui', {
 
 			return 'https://suiscan.xyz/'+chainString+'/'+type+'/'+id;
 		},
-		request() {
+		async request() {
 			Log.tag('$store.sui').info('sui connection requested');
+
+			if (this.suiMaster && this.suiMaster.address) {
+				return true;
+			}
+
+			if (!this.__requestConnectionPromise) {
+				this.__requestConnectionPromiseResolver = null;
+				this.__requestConnectionPromise = new Promise((res)=>{
+					this.__requestConnectionPromiseResolver = res;
+				});
+			}
+
+			await this.__requestConnectionPromise;
+			this.__requestConnectionPromise = null;
+			this.__requestConnectionPromiseResolver = null;
+
+			return true;
 		},
 		setSuiMaster(suiMaster) {
 			clearTimeout(this.__setSuiMasterTimeout);
@@ -131,7 +148,13 @@ export const useSuiStore = defineStore('sui', {
 						chain: ''+this.connectedChain,
 						suiMaster: suiMaster,
 					});
-					this.getSuiBalance();
+					this.getSuiBalance()
+						.then(()=>{
+							// all is ready
+							if (this.__requestConnectionPromiseResolver) {
+								this.__requestConnectionPromiseResolver();
+							}
+						});
 					this.drandEncryptor = null;
 					this.getTimeCapsuleEncryptor();
 				} else {
