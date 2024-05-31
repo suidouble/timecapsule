@@ -161,6 +161,10 @@ module timecapsule::timecapsule {
         make_and_share_store(ctx);
     }
 
+    #[test_only]
+    public(package) fun prophecy(time_capsule: &Timecapsule): String {
+        time_capsule.prophecy
+    }
 
     public entry fun mint_with_sui(store: &mut TimecapsuleStore, encrypted_prophecy: vector<u8>, for_round: u64, mut coin: Coin<SUI>, ctx: &mut TxContext) {
         assert!(store.version == VERSION, EWrongVersion);
