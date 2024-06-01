@@ -8,7 +8,22 @@ Decryption, move: sui::bls12381, sui::hash::blake2b256, suidouble::metadata  [mo
 
 Take a look in action at [hexcapsule.com](https://www.hexcapsule.com)
 
-Frontend: Vue, interaction with Sui package: [shared/classes](shared/classes)
+Frontend: Vue, interaction with Sui package  [shared/classes](shared/classes) :
+
+    - DrandRounds.js - drand API wrapper to get round signatures
+    - SampleProphecies.js - some sample messages as inspiration for users
+    - TimeCapsule.js - entity of TimeCapsule object on the blockchain
+    - TimeCapsuleContract.js - methods to interact with Move package
+    - TimeCapsuleEncryptor.js - encrypting messages
+
+
+### packages on the blockchain
+
+testnet - [0x5642b6ead93e220b692fbae8be0e865c36ec0d06287d6319889757dc58c25448](https://testnet.suivision.xyz/package/0x5642b6ead93e220b692fbae8be0e865c36ec0d06287d6319889757dc58c25448)
+
+mainnet - [0x020abcd433df2c68f62b794d0751d3a839945dcb6776ecf9fac76d3f0324a274](https://suivision.xyz/package/0x020abcd433df2c68f62b794d0751d3a839945dcb6776ecf9fac76d3f0324a274)
+
+### dev
 
 Run on your local:
 
