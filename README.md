@@ -1,6 +1,10 @@
 # timecapsule
 [hexcapsule.com](https://www.hexcapsule.com)
 
+[presentation video](https://www.youtube.com/watch?v=1TmmzaJGp0s)
+
+[presentation notes](https://docs.google.com/presentation/d/1ZLKuOMCPxKWad9NO3nhaF-WNs9mF2zw2trBzeJkgPrE/edit?usp=sharing)
+
 
 UI to encrypt messages for drand rounds on user side (and mint some nice looking NFT).
 
