@@ -1,6 +1,7 @@
 import Log from 'shared/classes/Log.js';
 // import TimeCapsuleEncryptor from 'shared/classes/TimeCapsule';
 import TimeCapsule from './TimeCapsule';
+import { bcs } from '@mysten/bcs';
 
 export default class TimeCapsuleContract {
     constructor(params = {}) {
@@ -206,7 +207,9 @@ export default class TimeCapsuleContract {
         const roundSignature = params.roundSignature;
 
         try {
-            const params = [this._storeId, timeCapsuleId, String.fromCharCode.apply(null, roundSignature)];
+            const signatureBCS = bcs.vector(bcs.u8()).serialize(roundSignature).toBytes();
+
+            const params = [this._storeId, timeCapsuleId, signatureBCS];
             Log.tag('TimeCapsuleContract').info('goint to decrypt a capsule: ', params);
             // @todo we'd better check messageEncrypted here somehow
             const res = await this._module.moveCall('decrypt', params);
@@ -322,17 +325,16 @@ export default class TimeCapsuleContract {
 
     // }
 
+
     async mint(params = {}) {
         const messageEncrypted = params.messageEncrypted;
         const targetDrandRound = params.targetDrandRound;
         const sui = params.sui;
 
-        if (targetDrandRound < 1) {
-            return false;
-        }
+        const messageEncryptedBCS = bcs.vector(bcs.u8()).serialize(messageEncrypted).toBytes();
 
         try {
-            const mintParams = [this._storeId, String.fromCharCode.apply(null, messageEncrypted), targetDrandRound];
+            const mintParams = [this._storeId, messageEncryptedBCS, targetDrandRound];
             let method = 'mint';
             if (sui) {
                 mintParams.push({type: 'SUI', amount: sui});
