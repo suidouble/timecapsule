@@ -1,5 +1,6 @@
 # timecapsule
-[hexcapsule.com](https://www.hexcapsule.com)
+
+Live dApp - [hexcapsule.com](https://www.hexcapsule.com)
 
 [presentation video](https://www.youtube.com/watch?v=1TmmzaJGp0s)
 
