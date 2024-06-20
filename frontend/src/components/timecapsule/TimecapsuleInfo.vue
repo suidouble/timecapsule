@@ -49,7 +49,8 @@
                 <td>
                     secret message<br/>
                     <img src="/sui.png" style="width: 20px; height: 20px; border-radius: 10px; vertical-align: middle;"/>&nbsp;{{contentSuiAmountAsString}}  <br/>
-                    <span v-if="fudAmountAsString && fudAmountAsString != '0'">FUD:&nbsp;&nbsp;{{fudAmountAsString}}<br/></span>  
+                    <span v-if="fudAmountAsString && fudAmountAsString != '0'">
+                        <img src="/fud.png" style="width: 20px; height: 20px; border-radius: 10px; vertical-align: middle;"/>&nbsp;{{fudAmountAsString}}<br/></span>  
                     <span v-if="buckAmountAsString && buckAmountAsString != '0'">
                         <img src="/buck.svg" style="width: 20px; height: 20px; border-radius: 10px; vertical-align: middle;"/>&nbsp;{{buckAmountAsString}}<br/></span>  
                     <span v-if="stakedBuckAmountAsString && stakedBuckAmountAsString != '0'" >
