@@ -305,39 +305,61 @@ export default class TimeCapsuleContract {
         return false;
     }
 
-    async stakeBuck(params = {}) {
-        const timeCapsuleId = params.timeCapsuleId;
+    async unstakeBuck(params = {}) {
         const staker = new BuckStaker({
             suiMaster: this.suiMaster,
         });
-        const prepared = await staker.stakeBuckIntoCapsule(params);
-        const txb = prepared.txBlock;
-        const stakedProof = prepared.stakedProof;
+        return await staker.unstakeBuckFromCapsule({
+            moveModule: this._module,
+            timeCapsuleId: params.timeCapsuleId,
+            storeId: this._storeId,
+        });
+    }
 
-        const callArgs = [];
-        callArgs.push(txb.pure(this._storeId));
-        callArgs.push(txb.pure(timeCapsuleId));
-        callArgs.push(stakedProof);
-
-        txb.moveCall({
-            target: `${this._module._package.address}::${this._module._moduleName}::put_object_to_bag`,
-            arguments: callArgs,
-            typeArguments: [staker.stakedProofType],
+    async stakeBuck(params = {}) {
+        const staker = new BuckStaker({
+            suiMaster: this.suiMaster,
+        });
+        return await staker.stakeBuckIntoCapsule({
+            moveModule: this._module,
+            timeCapsuleId: params.timeCapsuleId,
+            storeId: this._storeId,
+            amount: params.amount,
         });
 
-        // const sims = await this.suiMaster._signer._provider.devInspectTransactionBlock({
-        //     transactionBlock: txb,
-        //     sender: this.suiMaster.address,
+
+        // const timeCapsuleId = params.timeCapsuleId;
+        // const staker = new BuckStaker({
+        //     suiMaster: this.suiMaster,
+        // });
+        // const prepared = await staker.stakeBuckIntoCapsule(params);
+        // const txb = prepared.txBlock;
+        // const stakedProof = prepared.stakedProof;
+
+        // const callArgs = [];
+        // callArgs.push(txb.pure(this._storeId));
+        // callArgs.push(txb.pure(timeCapsuleId));
+        // callArgs.push(stakedProof);
+
+        // txb.moveCall({
+        //     target: `${this._module._package.address}::${this._module._moduleName}::put_object_to_bag`,
+        //     arguments: callArgs,
+        //     typeArguments: [staker.stakedProofType],
         // });
 
-        // console.error('sims', sims);
+        // // const sims = await this.suiMaster._signer._provider.devInspectTransactionBlock({
+        // //     transactionBlock: txb,
+        // //     sender: this.suiMaster.address,
+        // // });
 
-        const res = await this._module.moveCall('put_object_to_bag', {tx: txb});
-        if (res && res.status && res.status == 'success') {
-            return true;
-        }
+        // // console.error('sims', sims);
 
-        return false;
+        // const res = await this._module.moveCall('put_object_to_bag', {tx: txb});
+        // if (res && res.status && res.status == 'success') {
+        //     return true;
+        // }
+
+        // return false;
 
     }
 
