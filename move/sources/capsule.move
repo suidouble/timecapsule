@@ -270,7 +270,21 @@ module timecapsule::capsule {
             option::some(c)
         }
     }
+    
+    // please encrypt off-chain
+    public fun encrypt(self: &mut DrandChain, round: u64, msg_ref: &vector<u8>): vector<u8> {
+        vector::empty()
+    }
 
+    // please encrypt off-chain
+    public fun encrypt_for_time(self: &mut DrandChain, timestamp_ms: u64, msg_ref: &vector<u8>): vector<u8> {
+        vector::empty()
+    }
+
+    // please encrypt off-chain
+    public fun encrypt_for_round(public_key_ref: &vector<u8>, round: u64, msg: &vector<u8>, random_sigma_ref: &vector<u8>): vector<u8> {
+        vector::empty()
+    }
 
 
 }

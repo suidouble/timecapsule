@@ -17,9 +17,10 @@ const settings = {
     }, 
     "testnet": {
         "phrase": "coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin",
-        "packageId": "0xa7b4558a20c85dc0f76f2c9f1d6fa36ff6bc7a5083c8499117e4b01fce902fcc",
-        "storeId": "0x530136c8897391819fc6e8e7f3f3df7777e7d3843fb71b6ee3773240e8b0d0ef",
-        "adminCapId": "0x638742f6832003cb743a6ef9ccd0ee03fd839e47c5d8a52ea86f2661d544a7e8",
+        "packageId": "0x0602e79dc9fb3b53cbc9d551f211f0a9cd6f9b1cb90b985ec6973f714a7cff00",
+        "firstVPackageId": "0x5642b6ead93e220b692fbae8be0e865c36ec0d06287d6319889757dc58c25448",
+        "storeId": "0x6657d601d835715114894717ba3b87bc7a9bd3a1fbbd5e042f53d5438b8ee390",
+        "adminCapId": "0x46a2e3627a1226179a33ee579b97f69295d5217ad4b5ac01d90dc250ab7e2961",
     },
 };
 
