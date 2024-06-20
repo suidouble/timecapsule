@@ -12,9 +12,9 @@ import { Quasar } from 'quasar';
 import settings from './settings/settings';
 import Log from 'shared/classes/Log.js';
 
-// if (location.protocol !== 'https:' && (''+location.host).indexOf('localhost') == -1) {
-//     location.replace(`https:${location.href.substring(location.protocol.length)}`);
-// }
+if (location.protocol !== 'https:' && (''+location.host).indexOf('localhost') == -1) {
+    location.replace(`https:${location.href.substring(location.protocol.length)}`);
+}
 
 const router = createRouter({
 	history: createWebHistory(settings.quasar?.config?.basePath),
