@@ -2,6 +2,7 @@ import Log from 'shared/classes/Log.js';
 // import TimeCapsuleEncryptor from 'shared/classes/TimeCapsule';
 import TimeCapsule from './TimeCapsule';
 import { bcs } from '@mysten/bcs';
+import BuckStaker from './BuckStaker';
 
 export default class TimeCapsuleContract {
     constructor(params = {}) {
@@ -16,14 +17,14 @@ export default class TimeCapsuleContract {
 
         const chains = {
             'testnet': {
-                packageId: '0x0602e79dc9fb3b53cbc9d551f211f0a9cd6f9b1cb90b985ec6973f714a7cff00',
+                packageId: '0x95715c5f309fc2e64192d079652380282d1157fa048e711afc7878afd4af1bf1',
                 tokens: {
                     fud: '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN',
                     buck: '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN',
                 },
             },
             'mainnet': {
-                packageId: '0xc08b447aab3c0207705fe6973c725512af5caee29f26e48e5b43bce7762591ec',
+                packageId: '0xc92ff78629d8852b280b41c0016fe1d4c58bf4d9aae84f6faaab0257a0fdc949',
                 tokens: {
                     fud: '0x76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1::fud::FUD',
                     buck: '0xce7ff77a83ea0cb6fd39bd8748e2ec89a3f41e8efdc3f4eb123e0ca37b184db2::buck::BUCK',
@@ -107,7 +108,7 @@ export default class TimeCapsuleContract {
                 await this.suiMaster.objectStorage.push(obj);
             }
     
-            Log.tag('TimeCapsuleContract').info(suiEvent);
+            // Log.tag('TimeCapsuleContract').info(suiEvent);
         }, 50);
     
         await this.suiMaster.objectStorage.fetchObjects();
@@ -302,6 +303,42 @@ export default class TimeCapsuleContract {
         }
 
         return false;
+    }
+
+    async stakeBuck(params = {}) {
+        const timeCapsuleId = params.timeCapsuleId;
+        const staker = new BuckStaker({
+            suiMaster: this.suiMaster,
+        });
+        const prepared = await staker.stakeBuckIntoCapsule(params);
+        const txb = prepared.txBlock;
+        const stakedProof = prepared.stakedProof;
+
+        const callArgs = [];
+        callArgs.push(txb.pure(this._storeId));
+        callArgs.push(txb.pure(timeCapsuleId));
+        callArgs.push(stakedProof);
+
+        txb.moveCall({
+            target: `${this._module._package.address}::${this._module._moduleName}::put_object_to_bag`,
+            arguments: callArgs,
+            typeArguments: [staker.stakedProofType],
+        });
+
+        // const sims = await this.suiMaster._signer._provider.devInspectTransactionBlock({
+        //     transactionBlock: txb,
+        //     sender: this.suiMaster.address,
+        // });
+
+        // console.error('sims', sims);
+
+        const res = await this._module.moveCall('put_object_to_bag', {tx: txb});
+        if (res && res.status && res.status == 'success') {
+            return true;
+        }
+
+        return false;
+
     }
 
     // async putCoin(params = {}) {

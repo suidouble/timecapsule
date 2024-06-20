@@ -1,6 +1,6 @@
 #[allow(unused_variable, unused_use)]
 module timecapsule::timecapsule {
-    const VERSION: u64 = 2;
+    const VERSION: u64 = 3;
 
     // use std::string::{Self, utf8, String};
 
@@ -45,6 +45,10 @@ module timecapsule::timecapsule {
 
     // You can not take objects out of bag of encrypted capsule
     const ENotDecryptedYet: u64 = 6;
+
+    // You can not take objects out of bag of encrypted capsule
+    const ENoContent: u64 = 7;
+
 
     public struct TIMECAPSULE has drop {} /// One-Time-Witness for the module.
 
@@ -364,7 +368,7 @@ module timecapsule::timecapsule {
         }
     }
 
-    public entry fun take_out_objects<T: key + store>(store: &mut TimecapsuleStore, timecapsule: &mut Timecapsule, ctx: &mut TxContext) {
+    public fun take_out_object_no_entry<T: key + store>(store: &mut TimecapsuleStore, timecapsule: &mut Timecapsule, ctx: &mut TxContext): T {
         assert!(store.version == VERSION, EWrongVersion);
 
         if (!timecapsule.decrypted) {
@@ -373,10 +377,10 @@ module timecapsule::timecapsule {
 
         let typen = type_name::get<T>();
         let type_as_string = typen.into_string();
+        let mut index_to_remove;
 
         if (timecapsule.object_bag.contains(type_as_string)) {
-            let obj: T = timecapsule.object_bag.remove(type_as_string);
-            transfer::public_transfer(obj, tx_context::sender(ctx));
+            index_to_remove = type_as_string;
 
             // check if there're extra:
             // wrap with suffix
@@ -394,8 +398,7 @@ module timecapsule::timecapsule {
                 i = i + 1;
 
                 if (timecapsule.object_bag.contains(type_as_string_with_suffix)) {
-                    let additional_obj: T = timecapsule.object_bag.remove(type_as_string_with_suffix);
-                    transfer::public_transfer(additional_obj, tx_context::sender(ctx));
+                    index_to_remove = type_as_string_with_suffix;
 
                     is_id_available = true;
                 } else {
@@ -403,6 +406,59 @@ module timecapsule::timecapsule {
                 };
             };
 
-        }
+        } else {
+            abort ENoContent
+        };
+
+
+        timecapsule.object_bag.remove(index_to_remove)
+    }
+
+    public entry fun take_out_objects<T: key + store>(store: &mut TimecapsuleStore, timecapsule: &mut Timecapsule, ctx: &mut TxContext) {
+        assert!(store.version == VERSION, EWrongVersion);
+
+        if (!timecapsule.decrypted) {
+            abort ENotDecryptedYet
+        };
+
+        let typen = type_name::get<T>();
+        let type_as_string = typen.into_string();
+
+        while (timecapsule.object_bag.contains(type_as_string)) {
+            // getting extra items from the last one, as there may be many of the same type
+            let obj: T = take_out_object_no_entry(store, timecapsule, ctx);
+            transfer::public_transfer(obj, tx_context::sender(ctx));
+        };
+
+        // if (timecapsule.object_bag.contains(type_as_string)) {
+        //     let obj: T = timecapsule.object_bag.remove(type_as_string);
+        //     transfer::public_transfer(obj, tx_context::sender(ctx));
+
+        //     // check if there're extra:
+        //     // wrap with suffix
+        //     let mut i = 1;
+        //     let mut type_as_string_with_suffix;
+        //     let mut is_id_available = true;
+        //     let try_format = b"{str:s}_{suffix:i}";
+        //     let mut meta = b"";
+        //     metadata::set(&mut meta, metadata::key(&b"str"), &type_as_string.into_bytes());
+        //     while (is_id_available) {
+        //         metadata::set(&mut meta, metadata::key(&b"suffix"), &i);
+        //         let formatted = format::format(&try_format, &meta);
+        //         type_as_string_with_suffix = ascii::string(formatted);
+
+        //         i = i + 1;
+
+        //         if (timecapsule.object_bag.contains(type_as_string_with_suffix)) {
+        //             let additional_obj: T = timecapsule.object_bag.remove(type_as_string_with_suffix);
+        //             transfer::public_transfer(additional_obj, tx_context::sender(ctx));
+
+        //             is_id_available = true;
+        //         } else {
+        //             is_id_available = false;
+        //         };
+        //     };
+
+        // }
     }
 }

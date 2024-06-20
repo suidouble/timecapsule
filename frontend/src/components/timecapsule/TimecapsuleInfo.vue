@@ -51,6 +51,7 @@
                     SUI:&nbsp;{{contentSuiAmountAsString}}  <br/>
                     <span v-if="fudAmountAsString && fudAmountAsString != '0'">FUD:&nbsp;&nbsp;{{fudAmountAsString}}<br/></span>  
                     <span v-if="buckAmountAsString && buckAmountAsString != '0'">Buck:&nbsp;{{buckAmountAsString}}<br/></span>  
+                    <span v-if="stakedBuckAmountAsString && stakedBuckAmountAsString != '0'">Staked Buck:&nbsp;{{stakedBuckAmountAsString}}<br/></span>  
                 </td>
             </tr>
             <tr v-if="!timecapsule.is404">
@@ -123,6 +124,7 @@ export default {
             contentSuiAmountAsString: '',
             fudAmountAsString: '',
             buckAmountAsString: '',
+            stakedBuckAmountAsString: '',
 
             showUpgradeDialog: false,
 		}
@@ -138,6 +140,8 @@ export default {
                 this.contentSuiAmountAsString = await this.$store.sui.amountToString(this.timecapsule.contentSuiAmount);
                 this.fudAmountAsString = await this.timecapsule.getStoredFUDAmount();
                 this.buckAmountAsString = await this.timecapsule.getStoredBuckAmount();
+
+                this.stakedBuckAmountAsString = await this.timecapsule.getStakedBuckAmount();
             } catch (e) {
                 console.error(e);
             }
@@ -151,10 +155,11 @@ export default {
                 coinType: this.$store.sui.timeCapsuleContract.tokens.buck,
                 note: '1% to be taken as fee, rest is availiable for you anytime once capsule is decrypted'
             });
-            await this.$store.sui.timeCapsuleContract.putCoin({
+            await this.$store.sui.timeCapsuleContract.stakeBuck({
                 timeCapsuleId: this.timecapsule.id,
                 amount: amount,
-                coinType: this.$store.sui.timeCapsuleContract.tokens.buck,
+                // coinType: this.$store.sui.timeCapsuleContract.tokens.buck,
+                coin: 'buck',
             });
             await new Promise((res)=>setTimeout(res, 2000));
             await this.$store.sui.suiMaster.objectStorage.fetchObjects();
