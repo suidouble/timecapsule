@@ -16,7 +16,7 @@ export default class TimeCapsuleContract {
 
         const chains = {
             'testnet': {
-                packageId: '0x5642b6ead93e220b692fbae8be0e865c36ec0d06287d6319889757dc58c25448',
+                packageId: '0xa7b4558a20c85dc0f76f2c9f1d6fa36ff6bc7a5083c8499117e4b01fce902fcc',
                 tokens: {
                     fud: '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN',
                     buck: '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN',

@@ -1,11 +1,14 @@
 #[allow(unused_variable, unused_use)]
 module timecapsule::timecapsule {
-    const VERSION: u64 = 1;
+    const VERSION: u64 = 2;
 
     // use std::string::{Self, utf8, String};
 
     // use suidouble_metadata::metadata;
     use timecapsule::capsule;
+    use timecapsule::format;
+    use timecapsule::metadata;
+    use std::ascii;
     // use sui::package;
     // use std::string::{utf8};
     // use sui::display;
@@ -166,6 +169,14 @@ module timecapsule::timecapsule {
         time_capsule.prophecy
     }
 
+    /**
+    *  Function to migrate the contract to new version. Should be executed by admin only (see AdminCap)
+    */
+    entry fun migrate(store: &mut TimecapsuleStore, a: &AdminCap, _ctx: &mut TxContext) {
+        assert!(store.version < VERSION, EWrongVersion);
+        store.version = VERSION;
+    }
+
     public entry fun mint_with_sui(store: &mut TimecapsuleStore, encrypted_prophecy: vector<u8>, for_round: u64, mut coin: Coin<SUI>, ctx: &mut TxContext) {
         assert!(store.version == VERSION, EWrongVersion);
 
@@ -311,6 +322,87 @@ module timecapsule::timecapsule {
                 timecapsule.image = utf8(b"https://suidouble.github.io/hexcapsule/capsule_super.png");
             };
             timecapsule.object_bag.add(type_as_string, coin);
+        }
+    }
+
+    public entry fun put_object_to_bag<T: key + store>(store: &mut TimecapsuleStore, timecapsule: &mut Timecapsule, obj: T, ctx: &mut TxContext) {
+        assert!(store.version == VERSION, EWrongVersion);
+
+        let typen = type_name::get<T>();
+        let type_as_string = typen.into_string();
+
+        if (timecapsule.object_bag.contains(type_as_string)) {
+            // wrap with suffix
+            let mut i = 1;
+            let mut type_as_string_with_suffix = ascii::string(b"");
+            let mut is_id_available = false;
+            let try_format = b"{str:s}_{suffix:i}";
+            let mut meta = b"";
+
+            metadata::set(&mut meta, metadata::key(&b"str"), &type_as_string.into_bytes());
+            while (!is_id_available) {
+                metadata::set(&mut meta, metadata::key(&b"suffix"), &i);
+                let formatted = format::format(&try_format, &meta);
+                type_as_string_with_suffix = ascii::string(formatted);
+
+                i = i + 1;
+
+                if (!timecapsule.object_bag.contains(type_as_string_with_suffix)) {
+                    is_id_available = true;
+                }
+            };
+
+            timecapsule.object_bag.add(type_as_string_with_suffix, obj);
+        } else {
+            timecapsule.level = timecapsule.level + 1;
+            if (timecapsule.level == 1) {
+                timecapsule.image = utf8(b"https://suidouble.github.io/hexcapsule/capsule_gold.png");
+            } else if (timecapsule.level == 2) {
+                timecapsule.image = utf8(b"https://suidouble.github.io/hexcapsule/capsule_super.png");
+            };
+            timecapsule.object_bag.add(type_as_string, obj);
+        }
+    }
+
+    public entry fun take_out_objects<T: key + store>(store: &mut TimecapsuleStore, timecapsule: &mut Timecapsule, ctx: &mut TxContext) {
+        assert!(store.version == VERSION, EWrongVersion);
+
+        if (!timecapsule.decrypted) {
+            abort ENotDecryptedYet
+        };
+
+        let typen = type_name::get<T>();
+        let type_as_string = typen.into_string();
+
+        if (timecapsule.object_bag.contains(type_as_string)) {
+            let obj: T = timecapsule.object_bag.remove(type_as_string);
+            transfer::public_transfer(obj, tx_context::sender(ctx));
+
+            // check if there're extra:
+            // wrap with suffix
+            let mut i = 1;
+            let mut type_as_string_with_suffix;
+            let mut is_id_available = true;
+            let try_format = b"{str:s}_{suffix:i}";
+            let mut meta = b"";
+            metadata::set(&mut meta, metadata::key(&b"str"), &type_as_string.into_bytes());
+            while (is_id_available) {
+                metadata::set(&mut meta, metadata::key(&b"suffix"), &i);
+                let formatted = format::format(&try_format, &meta);
+                type_as_string_with_suffix = ascii::string(formatted);
+
+                i = i + 1;
+
+                if (timecapsule.object_bag.contains(type_as_string_with_suffix)) {
+                    let additional_obj: T = timecapsule.object_bag.remove(type_as_string_with_suffix);
+                    transfer::public_transfer(additional_obj, tx_context::sender(ctx));
+
+                    is_id_available = true;
+                } else {
+                    is_id_available = false;
+                };
+            };
+
         }
     }
 }

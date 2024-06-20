@@ -27,8 +27,8 @@
     "get-random-values": "^3.0.0",
     "lockfile": "^1.0.4",
     "node-fetch": "^2.6.7",
-    "suidouble": "^0.0.51",
-    "vue-sui": "^0.0.52",
+    "suidouble": "0.0.51",
+    "vue-sui": "0.0.52",
     "vue3-apexcharts": "^1.4.4",
     "winston": "^2.3.1"
   },

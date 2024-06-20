@@ -46,6 +46,22 @@ module timecapsule::timecapsule_tests {
 
         let mut time_capsule: timecapsule::Timecapsule = ts::take_from_sender(&scenario);
 
+        let user_fake_obj_count_now = user_fake_obj_count(ts::sender(&scenario), &mut scenario);
+        assert!(user_fake_obj_count_now == 0, 0);
+
+        let obj = Fake {
+            id: object::new(ts::ctx(&mut scenario)),
+        };
+        let obj2 = Fake {
+            id: object::new(ts::ctx(&mut scenario)),
+        };
+        let obj3 = Fake {
+            id: object::new(ts::ctx(&mut scenario)),
+        };
+        timecapsule::put_object_to_bag(&mut store, &mut time_capsule, obj, ts::ctx(&mut scenario));
+        timecapsule::put_object_to_bag(&mut store, &mut time_capsule, obj2, ts::ctx(&mut scenario));
+        timecapsule::put_object_to_bag(&mut store, &mut time_capsule, obj3, ts::ctx(&mut scenario));
+
         // decryption signature for drand round of 7965511
         let round_signature = x"8378a16d9355f6ab516bd76c3d8d547a30b044624c0832dfa62ae513393ad57cf81cc04dcb1e3200dfb99587734ff97f";
 
@@ -60,6 +76,12 @@ module timecapsule::timecapsule_tests {
         // check that capsule is decrypted:
         assert!(string::bytes(&timecapsule::prophecy(&time_capsule)) == b"test", 0);
         // and everything is ok
+
+        // get objects out of capsule
+        timecapsule::take_out_objects<Fake>(&mut store, &mut time_capsule, ts::ctx(&mut scenario));
+
+        let user_fake_obj_count_now = user_fake_obj_count(ts::sender(&scenario), &mut scenario);
+        assert!(user_fake_obj_count_now == 3, 0);
 
         ts::return_to_sender(&scenario, time_capsule);
         ts::return_shared(store);
@@ -86,5 +108,12 @@ module timecapsule::timecapsule_tests {
         sum
     }
 
+    public fun user_fake_obj_count(addr: address, scenario: &mut ts::Scenario): u64 {
+        ts::next_tx(scenario, addr);
+
+        let items_ids = ts::ids_for_sender<Fake>(scenario);
+
+        vector::length(&items_ids)
+    }
 
 }

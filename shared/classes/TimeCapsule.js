@@ -228,7 +228,7 @@ export default class TimeCapsule {
     }
 
     async getStoredCoinAmount(params = {}) {
-        // "c797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN"
+        
         // console.log(params);
         const coinType = params.coinType;// '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN';
         const coin = await this.suiMaster.suiCoins.get(coinType);
