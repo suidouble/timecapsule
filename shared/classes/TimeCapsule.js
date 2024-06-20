@@ -1,6 +1,7 @@
 /* global BigInt */
 import TimeCapsuleEncryptor from '../classes/TimeCapsuleEncryptor';
 import DrandRounds from '../classes/DrandRounds';
+import BuckStaker from './BuckStaker';
 
 export default class TimeCapsule {
     constructor(params = {}) {
@@ -9,6 +10,9 @@ export default class TimeCapsule {
         this._store = params.store;
 
         this._timeCapsuleEncryptor = new TimeCapsuleEncryptor();
+
+        this._stakeProofs = [];
+        this._stakeProofsIds = {};
     }
 
 
@@ -89,11 +93,69 @@ export default class TimeCapsule {
         return id.substring(0,8) + '..' + id.substring(id_length-10);
     }
 
+    async fetch() {
+        const SuiObject = this.suiMaster.SuiObject;
+        const obj = new SuiObject({
+            suiMaster: this.suiMaster,
+            id: this.id,
+        });
+
+        // await this.suiMaster.objectStorage.push(obj);
+        // await this.suiMaster.objectStorage.fetchObjects();
+
+        this._suiObject = obj;
+
+        await this.refresh();
+    }
+
     async refresh() {
+        this._stakeProofs = [];
+        this._stakeProofsIds = {};
+
         await this.suiMaster.objectStorage.push(this._suiObject);
         await this.suiMaster.objectStorage.fetchObjects();
 
+        try {
+            // get Buck's StakedProof objects in timecapsule Bag
+            const SuiObject = this.suiMaster.SuiObject;
+            const bagId = this._suiObject.fields.object_bag.fields.id.id;
+    
+            const objectBag = new SuiObject({id: bagId, suiMaster: this.suiMaster});
+            const objectBagFields = await objectBag.getDynamicFields();
+    
+            await objectBagFields.forEach(async(field)=>{
+                if (field) {
+                    if (field.name && field.name.value) {
+                        if (field.name.value.indexOf('StakeProof') !== -1) {
+                            const obj = new SuiObject({id: field.objectId, suiMaster: this.suiMaster});
+                            if (!this._stakeProofsIds[obj.id]) {
+                                await obj.fetchFields();
+                                this._stakeProofs.push(obj);
+                                this._stakeProofsIds[obj.id] = true;
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error(e);
+        }
+
         return true;
+    }
+
+    async getExpectedStakedRewards() {
+        const buckStaker = new BuckStaker({suiMaster: this.suiMaster});
+        const fountain = await buckStaker.getFountain();
+        let rewards = BigInt(0);
+
+        for (const stakeProof of this._stakeProofs) {
+            rewards = rewards + buckStaker.calculateRewardsOfStakeProof(fountain, stakeProof);
+        }
+
+        const coin = await this.suiMaster.suiCoins.get('sui');
+        await coin.getMetadata();
+        return coin.amountToString(rewards);
     }
 
     async decrypt() {
@@ -201,18 +263,6 @@ export default class TimeCapsule {
 // sui
 // : 
 // "100000000"
-    async fetch() {
-        const SuiObject = this.suiMaster.SuiObject;
-        const obj = new SuiObject({
-            suiMaster: this.suiMaster,
-            id: this.id,
-        });
-
-        await this.suiMaster.objectStorage.push(obj);
-        await this.suiMaster.objectStorage.fetchObjects();
-
-        this._suiObject = obj;
-    }
 
     async getStoredBuckAmount() {
         if (this.contract && this.contract.tokens && this.contract.tokens.buck) {
@@ -225,6 +275,7 @@ export default class TimeCapsule {
             return await this.getStoredCoinAmount({ coinType: this.contract.tokens.fud });
         }
     }
+
 
     async getStakedBuckAmount() {
         const SuiObject = this.suiMaster.SuiObject;
@@ -240,6 +291,8 @@ export default class TimeCapsule {
                     if (field.name.value.indexOf('StakeProof') !== -1) {
                         const obj = new SuiObject({id: field.objectId, suiMaster: this.suiMaster});
                         await obj.fetchFields();
+
+                        this._stakeProofs.push(obj);
 
                         amount = amount + BigInt(obj.fields.stake_amount);
                     }

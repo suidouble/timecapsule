@@ -48,10 +48,17 @@
                 <td valign="top">contents</td>
                 <td>
                     secret message<br/>
-                    SUI:&nbsp;{{contentSuiAmountAsString}}  <br/>
+                    <img src="/sui.png" style="width: 20px; height: 20px; border-radius: 10px; vertical-align: middle;"/>&nbsp;{{contentSuiAmountAsString}}  <br/>
                     <span v-if="fudAmountAsString && fudAmountAsString != '0'">FUD:&nbsp;&nbsp;{{fudAmountAsString}}<br/></span>  
-                    <span v-if="buckAmountAsString && buckAmountAsString != '0'">Buck:&nbsp;{{buckAmountAsString}}<br/></span>  
-                    <span v-if="stakedBuckAmountAsString && stakedBuckAmountAsString != '0'" @click="unstake">Staked Buck:&nbsp;{{stakedBuckAmountAsString}}<br/></span>  
+                    <span v-if="buckAmountAsString && buckAmountAsString != '0'">
+                        <img src="/buck.svg" style="width: 20px; height: 20px; border-radius: 10px; vertical-align: middle;"/>&nbsp;{{buckAmountAsString}}<br/></span>  
+                    <span v-if="stakedBuckAmountAsString && stakedBuckAmountAsString != '0'" >
+                        <img src="/sbuck.png" style="width: 20px; height: 20px; border-radius: 10px; vertical-align: middle;"/>&nbsp;{{stakedBuckAmountAsString}}<br/></span> 
+                    <span v-if="stakedBuckRewardsAsString && stakedBuckRewardsAsString != '0'" >
+                        <img src="/sui.png" style="width: 20px; height: 20px; border-radius: 10px; vertical-align: middle;"/>&nbsp;{{stakedBuckRewardsAsString}}<br/></span>  
+                
+                    
+                    
                 </td>
             </tr>
             <tr v-if="!timecapsule.is404">
@@ -133,6 +140,7 @@ export default {
             fudAmountAsString: '',
             buckAmountAsString: '',
             stakedBuckAmountAsString: '',
+            stakedBuckRewardsAsString: '',
 
             showUpgradeDialog: false,
 		}
@@ -145,14 +153,30 @@ export default {
 	methods: {
         async recalcContent() {
             try {
+                clearTimeout(this.__refreshRewardsTimeout);
                 this.contentSuiAmountAsString = await this.$store.sui.amountToString(this.timecapsule.contentSuiAmount);
                 this.fudAmountAsString = await this.timecapsule.getStoredFUDAmount();
                 this.buckAmountAsString = await this.timecapsule.getStoredBuckAmount();
 
                 this.stakedBuckAmountAsString = await this.timecapsule.getStakedBuckAmount();
+                if (this.stakedBuckAmountAsString && this.stakedBuckAmountAsString != '0' && this.stakedBuckAmountAsString != '0.0') {
+                    this.stakedBuckRewardsAsString = await this.timecapsule.getExpectedStakedRewards();
+                    clearTimeout(this.__refreshRewardsTimeout);
+                    this.__refreshRewardsTimeout = setTimeout(()=>{
+                        this.refreshRewards();
+                    }, 100);
+                } else {
+                    this.stakedBuckRewardsAsString = '0';
+                }                
             } catch (e) {
                 console.error(e);
             }
+        },
+        async refreshRewards() {
+            this.stakedBuckRewardsAsString = await this.timecapsule.getExpectedStakedRewards();
+            this.__refreshRewardsTimeout = setTimeout(()=>{
+                this.refreshRewards();
+            }, 100);
         },
         async unstake() {
             if (!this.isConnected) {
@@ -165,6 +189,7 @@ export default {
             await new Promise((res)=>setTimeout(res, 2000));
             await this.$store.sui.suiMaster.objectStorage.fetchObjects();
             await new Promise((res)=>setTimeout(res, 100));
+            await this.timecapsule.refresh();
             await this.recalcContent();
             this.$emit('refresh');
         },
@@ -186,6 +211,7 @@ export default {
             await new Promise((res)=>setTimeout(res, 2000));
             await this.$store.sui.suiMaster.objectStorage.fetchObjects();
             await new Promise((res)=>setTimeout(res, 100));
+            await this.timecapsule.refresh();
             await this.recalcContent();
             this.$emit('refresh');
         },

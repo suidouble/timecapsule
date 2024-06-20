@@ -1,3 +1,4 @@
+/* global BigInt */
 
 export default class BuckStaker {
     constructor(params = {}) {
@@ -29,6 +30,83 @@ export default class BuckStaker {
 
     get suiMaster() {
         return this._suiMaster;
+    }
+
+    async getFountain() {
+        const SuiObject = this.suiMaster.SuiObject;
+        const fountain = new SuiObject({id: this.consts.SBUCK_BUCK_LP_REGISTRY_ID, suiMaster: this.suiMaster });
+        await fountain.fetchFields();
+
+        return fountain;
+    }
+
+    calculateRewardsOfStakeProof(fountain, stakeProof) {
+        const DISTRIBUTION_PRECISION = BigInt('0x10000000000000000');
+
+        const currentTime = BigInt((new Date()).getTime());
+        const latestReleaseTime = BigInt(fountain.fields.latest_release_time);
+        const flowAmount = BigInt(fountain.fields.flow_amount);
+        const flowInterval = BigInt(fountain.fields.flow_interval);
+        const sourceBalance = BigInt(fountain.fields.source);
+        const totalWeight = BigInt(fountain.fields.total_weight);
+
+        let virtualReleasedAmount = BigInt(0);
+        //     public fun get_virtual_released_amount<S, R>(fountain: &Fountain<S, R>, current_time: u64): u64 {
+        if (currentTime > latestReleaseTime) {
+            const interval = currentTime - latestReleaseTime;
+            const releasedAmount = (flowAmount * interval + flowInterval / BigInt(2)) / flowInterval;
+            if (releasedAmount > sourceBalance) {
+                virtualReleasedAmount = sourceBalance;
+            } else {
+                virtualReleasedAmount = releasedAmount;
+            }
+        }
+
+        // public fun get_reward_amount<S, R>(
+        const stakeWeight = BigInt(stakeProof.fields.stake_weight);
+        const startUint = BigInt(stakeProof.fields.start_uint);
+        const cumulativeUnit = BigInt(fountain.fields.cumulative_unit);
+
+        const virtualCumulativeUnit = cumulativeUnit + (
+                (virtualReleasedAmount * DISTRIBUTION_PRECISION + totalWeight / BigInt(2)) / totalWeight
+            );
+
+
+        const rewardAmount = (stakeWeight * (virtualCumulativeUnit - startUint) + DISTRIBUTION_PRECISION / BigInt(2) ) / DISTRIBUTION_PRECISION;
+
+        // (math::mul_factor_u128((proof.stake_weight as u128), virtual_cumulative_unit - proof.start_uint, DISTRIBUTION_PRECISION) as u64)
+
+        // (number * numerator + denominator / 2) / denominator
+        return rewardAmount;
+    }
+
+    async calculateRewards(params = {}) {
+        const SuiObject = this.suiMaster.SuiObject;
+        const suiObject = params.suiObject;
+
+        const fountain = new SuiObject({id: this.consts.SBUCK_BUCK_LP_REGISTRY_ID, suiMaster: this.suiMaster });
+        await fountain.fetchFields();
+
+        const bagId = suiObject.fields.object_bag.fields.id.id;
+
+        const objectBag = new SuiObject({id: bagId, suiMaster: this.suiMaster});
+        const objectBagFields = await objectBag.getDynamicFields();
+
+        let amount = BigInt(0);
+        await objectBagFields.forEach(async(field)=>{
+            if (field) {
+                if (field.name && field.name.value) {
+                    if (field.name.value.indexOf('StakeProof') !== -1) {
+                        const obj = new SuiObject({id: field.objectId, suiMaster: this.suiMaster});
+                        await obj.fetchFields();
+
+                        amount = amount + this.calculateRewardsOfStakeProof(fountain, obj);
+                    }
+                }
+            }
+        });
+
+        return amount;
     }
 
     async unstakeBuckFromCapsule(params = {}) {
