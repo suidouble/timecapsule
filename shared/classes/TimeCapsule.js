@@ -1,3 +1,4 @@
+/* global BigInt */
 import TimeCapsuleEncryptor from '../classes/TimeCapsuleEncryptor';
 import DrandRounds from '../classes/DrandRounds';
 
@@ -8,8 +9,6 @@ export default class TimeCapsule {
         this._store = params.store;
 
         this._timeCapsuleEncryptor = new TimeCapsuleEncryptor();
-
-        console.error(this._suiObject);
     }
 
 
@@ -225,6 +224,32 @@ export default class TimeCapsule {
         if (this.contract && this.contract.tokens && this.contract.tokens.fud) {
             return await this.getStoredCoinAmount({ coinType: this.contract.tokens.fud });
         }
+    }
+
+    async getStakedBuckAmount() {
+        const SuiObject = this.suiMaster.SuiObject;
+        const bagId = this._suiObject.fields.object_bag.fields.id.id;
+
+        const objectBag = new SuiObject({id: bagId, suiMaster: this.suiMaster});
+        const objectBagFields = await objectBag.getDynamicFields();
+
+        let amount = BigInt(0);
+        await objectBagFields.forEach(async(field)=>{
+            if (field) {
+                if (field.name && field.name.value) {
+                    if (field.name.value.indexOf('StakeProof') !== -1) {
+                        const obj = new SuiObject({id: field.objectId, suiMaster: this.suiMaster});
+                        await obj.fetchFields();
+
+                        amount = amount + BigInt(obj.fields.stake_amount);
+                    }
+                }
+            }
+        });
+
+        const coin = await this.suiMaster.suiCoins.get('0xce7ff77a83ea0cb6fd39bd8748e2ec89a3f41e8efdc3f4eb123e0ca37b184db2::buck::BUCK');
+        await coin.getMetadata();
+        return coin.amountToString(amount);
     }
 
     async getStoredCoinAmount(params = {}) {

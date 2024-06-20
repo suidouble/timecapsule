@@ -51,6 +51,7 @@
                     SUI:&nbsp;{{contentSuiAmountAsString}}  <br/>
                     <span v-if="fudAmountAsString && fudAmountAsString != '0'">FUD:&nbsp;&nbsp;{{fudAmountAsString}}<br/></span>  
                     <span v-if="buckAmountAsString && buckAmountAsString != '0'">Buck:&nbsp;{{buckAmountAsString}}<br/></span>  
+                    <span v-if="stakedBuckAmountAsString && stakedBuckAmountAsString != '0'" @click="unstake">Staked Buck:&nbsp;{{stakedBuckAmountAsString}}<br/></span>  
                 </td>
             </tr>
             <tr v-if="!timecapsule.is404">
@@ -97,6 +98,14 @@
             </div>
         </q-btn>
 
+        <q-btn outline square color="white" @click="unstake" :disable="!canUnstakeBuck" v-if="stakedBuckAmountAsString && stakedBuckAmountAsString != '0'" class="q-mt-md">
+            <div style="padding: 0; line-height: 30px;">
+                <img src="/buck.svg" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle;"/>
+                Unstake Bucket USD
+            </div>
+        </q-btn>
+
+
     </q-card-section>
     </q-card>
     </div>
@@ -123,6 +132,7 @@ export default {
             contentSuiAmountAsString: '',
             fudAmountAsString: '',
             buckAmountAsString: '',
+            stakedBuckAmountAsString: '',
 
             showUpgradeDialog: false,
 		}
@@ -138,9 +148,25 @@ export default {
                 this.contentSuiAmountAsString = await this.$store.sui.amountToString(this.timecapsule.contentSuiAmount);
                 this.fudAmountAsString = await this.timecapsule.getStoredFUDAmount();
                 this.buckAmountAsString = await this.timecapsule.getStoredBuckAmount();
+
+                this.stakedBuckAmountAsString = await this.timecapsule.getStakedBuckAmount();
             } catch (e) {
                 console.error(e);
             }
+        },
+        async unstake() {
+            if (!this.isConnected) {
+                await this.$store.sui.request();
+            }
+
+            await this.$store.sui.timeCapsuleContract.unstakeBuck({
+                timeCapsuleId: this.timecapsule.id,
+            });
+            await new Promise((res)=>setTimeout(res, 2000));
+            await this.$store.sui.suiMaster.objectStorage.fetchObjects();
+            await new Promise((res)=>setTimeout(res, 100));
+            await this.recalcContent();
+            this.$emit('refresh');
         },
         async attachBuck() {
             if (!this.isConnected) {
@@ -149,12 +175,13 @@ export default {
             
             const amount = await this.$refs.askAmountDialog.ask({
                 coinType: this.$store.sui.timeCapsuleContract.tokens.buck,
-                note: '1% to be taken as fee, rest is availiable for you anytime once capsule is decrypted'
+                note: 'may be unstaked anytime once capsule is decrypted'
             });
-            await this.$store.sui.timeCapsuleContract.putCoin({
+            await this.$store.sui.timeCapsuleContract.stakeBuck({
                 timeCapsuleId: this.timecapsule.id,
                 amount: amount,
-                coinType: this.$store.sui.timeCapsuleContract.tokens.buck,
+                // coinType: this.$store.sui.timeCapsuleContract.tokens.buck,
+                coin: 'buck',
             });
             await new Promise((res)=>setTimeout(res, 2000));
             await this.$store.sui.suiMaster.objectStorage.fetchObjects();
@@ -214,6 +241,13 @@ export default {
 	computed: {
         isConnected: function() {
             return this.$store.sui.address;
+        },
+        canUnstakeBuck: function() {
+            if (this.timecapsule.decrypted && this.stakedBuckAmountAsString && this.stakedBuckAmountAsString != '0' && this.stakedBuckAmountAsString != '0.0') {
+                return true;
+            }
+            return false;
+
         },
         canUpgradeWithFud: function() {
             if (this.fudAmountAsString && this.fudAmountAsString != '0' && this.fudAmountAsString != '0.0') {

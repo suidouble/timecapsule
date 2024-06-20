@@ -1,7 +1,7 @@
 #[test_only]
 module timecapsule::timecapsule_tests {
     use timecapsule::timecapsule;
-    use std::debug;
+    // use std::debug;
 
     #[test_only]
     use sui::test_scenario as ts;

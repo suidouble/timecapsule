@@ -272,17 +272,17 @@ module timecapsule::capsule {
     }
     
     // please encrypt off-chain
-    public fun encrypt(self: &mut DrandChain, round: u64, msg_ref: &vector<u8>): vector<u8> {
+    public fun encrypt(_self: &mut DrandChain, _round: u64, _msg_ref: &vector<u8>): vector<u8> {
         vector::empty()
     }
 
     // please encrypt off-chain
-    public fun encrypt_for_time(self: &mut DrandChain, timestamp_ms: u64, msg_ref: &vector<u8>): vector<u8> {
+    public fun encrypt_for_time(_self: &mut DrandChain, _timestamp_ms: u64, _msg_ref: &vector<u8>): vector<u8> {
         vector::empty()
     }
 
     // please encrypt off-chain
-    public fun encrypt_for_round(public_key_ref: &vector<u8>, round: u64, msg: &vector<u8>, random_sigma_ref: &vector<u8>): vector<u8> {
+    public fun encrypt_for_round(_public_key_ref: &vector<u8>, _round: u64, _msg: &vector<u8>, _random_sigma_ref: &vector<u8>): vector<u8> {
         vector::empty()
     }
 
