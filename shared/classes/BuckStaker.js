@@ -1,4 +1,5 @@
 /* global BigInt */
+// import Log from 'shared/classes/Log.js';
 
 export default class BuckStaker {
     constructor(params = {}) {
@@ -67,6 +68,7 @@ export default class BuckStaker {
         const startUint = BigInt(stakeProof.fields.start_uint);
         const cumulativeUnit = BigInt(fountain.fields.cumulative_unit);
 
+
         const virtualCumulativeUnit = cumulativeUnit + (
                 (virtualReleasedAmount * DISTRIBUTION_PRECISION + totalWeight / BigInt(2)) / totalWeight
             );
@@ -77,6 +79,7 @@ export default class BuckStaker {
         // (math::mul_factor_u128((proof.stake_weight as u128), virtual_cumulative_unit - proof.start_uint, DISTRIBUTION_PRECISION) as u64)
 
         // (number * numerator + denominator / 2) / denominator
+        // Log.tag('BuckStaker').info('Calculating rewards', fountain.fields, stakeProof.fields, rewardAmount);
         return rewardAmount;
     }
 
@@ -92,6 +95,7 @@ export default class BuckStaker {
         const objectBag = new SuiObject({id: bagId, suiMaster: this.suiMaster});
         const objectBagFields = await objectBag.getDynamicFields();
 
+        // Log.tag('BuckStaker').info('StakeProof', objectBagFields);
         let amount = BigInt(0);
         await objectBagFields.forEach(async(field)=>{
             if (field) {

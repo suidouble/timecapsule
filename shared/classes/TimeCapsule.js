@@ -130,8 +130,10 @@ export default class TimeCapsule {
                             const obj = new SuiObject({id: field.objectId, suiMaster: this.suiMaster});
                             if (!this._stakeProofsIds[obj.id]) {
                                 await obj.fetchFields();
-                                this._stakeProofs.push(obj);
-                                this._stakeProofsIds[obj.id] = true;
+                                if (!this._stakeProofsIds[obj.id]) {
+                                    this._stakeProofs.push(obj);
+                                    this._stakeProofsIds[obj.id] = true;
+                                }
                             }
                         }
                     }
@@ -292,7 +294,9 @@ export default class TimeCapsule {
                         const obj = new SuiObject({id: field.objectId, suiMaster: this.suiMaster});
                         await obj.fetchFields();
 
-                        this._stakeProofs.push(obj);
+                        if (!this._stakeProofsIds[obj.id]) {
+                            this._stakeProofs.push(obj);
+                        }
 
                         amount = amount + BigInt(obj.fields.stake_amount);
                     }
