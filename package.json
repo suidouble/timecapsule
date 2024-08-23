@@ -28,6 +28,7 @@
     "lockfile": "^1.0.4",
     "node-fetch": "^2.6.7",
     "suidouble": "0.0.51",
+    "suidouble_metadata": "^0.0.8",
     "vue-sui": "0.0.52",
     "vue3-apexcharts": "^1.4.4",
     "winston": "^2.3.1"

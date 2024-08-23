@@ -3,6 +3,9 @@ import { bls12_381 } from '@noble/curves/bls12-381';
 import { sha256 } from '@noble/hashes/sha256';
 import { blake2b } from 'blakejs';
 import getRandomValues from 'get-random-values';
+import { Metadata } from 'suidouble_metadata';
+
+console.log(Metadata);
 
 const PointG1 = bls12_381.G1;
 const PointG2 = bls12_381.G2;
@@ -170,66 +173,26 @@ export default class TimeCapsuleEncryptor {
             messageChunks[messageChunks.length - 1] = withPadding;
         }
 
-        let retMetadata = new Uint8Array([0]);  // 0 - version byte
-        const chunk_header_length = 8;
+        const meta = new Metadata();
         let i = 0;
 
         for (const messageChunk of messageChunks) {
             // encrypt chunks one by one
             const enc = this.encryptChunk(messageChunk, roundKey);
-            const encMetadata = this.encToMetadata(enc);
-
-            let chunk_id = new Uint8Array([
-                (i % 256),          
-                ((i >> 8) % 256),     
-                ((i >> 16) % 256), 
-                ((i >> 24) % 256),
-            ]);
-
-            retMetadata = this.concatUint8Arrays(retMetadata, chunk_id);
-            const lengthAsULEB = this.intToULEB128(encMetadata.length);
-            const lengthAsULEBLength = lengthAsULEB.length;
-
-            retMetadata = this.concatUint8Arrays(retMetadata, (new Uint8Array([(encMetadata.length + chunk_header_length + lengthAsULEBLength),0,0,0])));
-            // ^ works, as chunks are <255 bytes, [length, 0,0,0];
-
-            retMetadata = this.concatUint8Arrays(retMetadata, lengthAsULEB); 
-            // ULEB length of vector 
-            
-            retMetadata = this.concatUint8Arrays(retMetadata, encMetadata); 
+            const encMetadataUint8Array = this.encToMetadata(enc);
+            meta.set(i, encMetadataUint8Array, 'vector<u8>');
             i = i + 1;
         }
 
-        return retMetadata;
+        return meta.toBytes();
     }
 
     encToMetadata(obj) {
-        let ret = new Uint8Array([0]);  // 0 - version byte
-        // ret.push(0);
-        const chunk_header_length = 8;
-        // 4 bytes  = chunk_id as u32
-        // 4 bytes = chunk length as u32
-        // data
-
-        // key('v') == 55
-        ret = this.concatUint8Arrays(ret, (new Uint8Array([55,0,0,0])));
-        ret = this.concatUint8Arrays(ret, (new Uint8Array([obj.v.length + chunk_header_length + 1, 0,0,0, obj.v.length]))); // + 1 byte of vec length
-        ret = this.concatUint8Arrays(ret, obj.v);
-
-        // key('w') == 56
-        ret = this.concatUint8Arrays(ret, (new Uint8Array([56,0,0,0])));
-        ret = this.concatUint8Arrays(ret, (new Uint8Array([obj.w.length + chunk_header_length + 1,0,0,0, obj.w.length]))); // + 1 byte of vec length
-        ret = this.concatUint8Arrays(ret, obj.w);
-
-        // key('u') == 54
-        ret = this.concatUint8Arrays(ret, (new Uint8Array([54,0,0,0])));
-        ret = this.concatUint8Arrays(ret, (new Uint8Array([obj.u.length + chunk_header_length + 1,0,0,0, obj.u.length]))); // + 1 byte of vec length
-        ret = this.concatUint8Arrays(ret, obj.u);
-
-
-        // console.log(ret);
-
-        return ret;
+        const meta = new Metadata();
+        meta.set('v', obj.v);
+        meta.set('w', obj.w);
+        meta.set('u', obj.u);
+        return meta.toBytes();
     }
 
     encryptChunk(message, roundKey) {
