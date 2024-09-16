@@ -21,6 +21,7 @@ export default class TimeCapsuleContract {
                 tokens: {
                     fud: '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN',
                     buck: '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN',
+                    meta: '0x1d4a80381ecca0ea3ea458bf9f0d633323f7226070b85d2de45c091938cfc0fa::meta::META',
                 },
             },
             'mainnet': {
@@ -28,6 +29,7 @@ export default class TimeCapsuleContract {
                 tokens: {
                     fud: '0x76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1::fud::FUD',
                     buck: '0xce7ff77a83ea0cb6fd39bd8748e2ec89a3f41e8efdc3f4eb123e0ca37b184db2::buck::BUCK',
+                    meta: '0x3c680197c3d3c3437f78a962f4be294596c5ebea6cea6764284319d5e832e8e4::meta::META',
                 },
             },
         };
@@ -235,6 +237,9 @@ export default class TimeCapsuleContract {
         if (params.coin == 'buck') {
             coinType = this.tokens['buck'];
         }
+        if (params.coin == 'meta') {
+            coinType = this.tokens['meta'];
+        }
         // const coinType = '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN';
 
         try {
@@ -270,6 +275,9 @@ export default class TimeCapsuleContract {
         }        
         if (params.coin == 'buck') {
             coinType = this.tokens['buck'];
+        }    
+        if (params.coin == 'meta') {
+            coinType = this.tokens['meta'];
         }
         const amount = params.amount;
         const ownerAddress = this.suiMaster.address;

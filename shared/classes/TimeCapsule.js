@@ -278,6 +278,11 @@ export default class TimeCapsule {
         }
     }
 
+    async getStoredMetaAmount() {
+        if (this.contract && this.contract.tokens && this.contract.tokens.meta) {
+            return await this.getStoredCoinAmount({ coinType: this.contract.tokens.meta });
+        }
+    }
 
     async getStakedBuckAmount() {
         const SuiObject = this.suiMaster.SuiObject;

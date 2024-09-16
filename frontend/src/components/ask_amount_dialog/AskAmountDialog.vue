@@ -109,7 +109,12 @@ export default {
 
             await this.__askPromise;
 
-            return this.amount;
+            let amount = ''+this.amount;
+            if (amount.indexOf('.') === -1) {
+                amount = amount + '.0';
+            }
+
+            return amount;
         },
         onOk() {
             if (this.__askPromiseResolver) {

@@ -10,6 +10,11 @@
     <div v-if="timecapsule">
     <q-card flat square>
       <q-card-section>
+        <q-spinner-dots
+            v-if="isLoading"
+            color="white"
+            size="2em"
+            />
         <table>
             <tr>
                 <td>id</td>
@@ -48,15 +53,20 @@
                 <td valign="top">contents</td>
                 <td>
                     secret message<br/>
-                    <img src="/sui.png" style="width: 20px; height: 20px; border-radius: 10px; vertical-align: middle;"/>&nbsp;{{contentSuiAmountAsString}}  <br/>
-                    <span v-if="fudAmountAsString && fudAmountAsString != '0'">
-                        <img src="/fud.png" style="width: 20px; height: 20px; border-radius: 10px; vertical-align: middle;"/>&nbsp;{{fudAmountAsString}}<br/></span>  
-                    <span v-if="buckAmountAsString && buckAmountAsString != '0'">
-                        <img src="/buck.svg" style="width: 20px; height: 20px; border-radius: 10px; vertical-align: middle;"/>&nbsp;{{buckAmountAsString}}<br/></span>  
-                    <span v-if="stakedBuckAmountAsString && stakedBuckAmountAsString != '0'" >
-                        <img src="/sbuck.png" style="width: 20px; height: 20px; border-radius: 10px; vertical-align: middle;"/>&nbsp;{{stakedBuckAmountAsString}}<br/></span> 
-                    <span v-if="stakedBuckRewardsAsString && stakedBuckRewardsAsString != '0'" >
-                        <img src="/sui.png" style="width: 20px; height: 20px; border-radius: 10px; vertical-align: middle;"/>&nbsp;{{stakedBuckRewardsAsString}}<br/></span>  
+                    <img src="/sui.png" style="width: 40px; height: 40px; border-radius: 20px; vertical-align: middle;"/>&nbsp;{{contentSuiAmountAsString}}  <br/>
+
+                    <span style="padding-top: 8px; display: block;">
+                        <img src="/meta.png" style="width: 40px; height: 40px; border-radius: 20px; vertical-align: middle; box-shadow: 0 0 2px 0px white inset, 0 0 2px 0px white;"/>&nbsp;{{metaAmountAsString}}<br/></span>  
+
+                    <!-- <span v-if="fudAmountAsString && fudAmountAsString != '0'"> -->
+                        <!-- <img src="/fud.png" style="width: 40px; height: 40px; border-radius: 20px; vertical-align: middle;"/>&nbsp;{{fudAmountAsString}}<br/></span>   -->
+                    
+                    <span v-if="buckAmountAsString && buckAmountAsString != '0'"  style="padding-top: 8px; display: block;">
+                        <img src="/buck.svg" style="width: 40px; height: 40px; border-radius: 20px; vertical-align: middle;"/>&nbsp;{{buckAmountAsString}}<br/></span>  
+                    <span v-if="stakedBuckAmountAsString && stakedBuckAmountAsString != '0'"  style="padding-top: 8px; display: block;">
+                        <img src="/sbuck.png" style="width: 40px; height: 40px; border-radius: 20px; vertical-align: middle;"/>&nbsp;{{stakedBuckAmountAsString}}<br/></span> 
+                    <span v-if="stakedBuckRewardsAsString && stakedBuckRewardsAsString != '0'"  style="padding-top: 8px; display: block;">
+                        <img src="/sui.png" style="width: 40px; height: 40px; border-radius: 20px; vertical-align: middle;"/>&nbsp;{{stakedBuckRewardsAsString}}<br/></span>  
                 
                     
                     
@@ -78,26 +88,34 @@
 
         <AskAmountDialog ref="askAmountDialog" />
 
-        <q-btn outline square color="white" @click="attachBuck" v-if="canUpgradeWithBuck" class="q-mt-md">
+        <q-btn outline square color="white" @click="attachMeta" v-if="canUpgradeWithBuck" class="q-mt-md">
             <div style="padding: 0; line-height: 30px;">
-                <img src="/buck.svg" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle;"/>
-                Upgrade with Bucket USD
+                <img src="/meta.png" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle; box-shadow: 0 0 2px 0px white inset, 0 0 2px 0px white;"/>
+                Upgrade with META
             </div>
         </q-btn>
-
+<!-- 
         <q-btn outline square color="white" @click="attachFud" v-if="canUpgradeWithFud" class="q-mt-md">
             <div style="padding: 0; line-height: 30px;">
                 <img src="/fud.png" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle;"/>
                 Upgrade with $FUD
             </div>
-        </q-btn>
+        </q-btn> -->
 
+
+        <q-btn outline square color="white" @click="takeOutMeta" :disable="!canWithdrawMeta" class="q-mt-md">
+            <div style="padding: 0; line-height: 30px;">
+                <img src="/meta.png" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle; box-shadow: 0 0 2px 0px white inset, 0 0 2px 0px white;"/>
+                Take out META
+            </div>
+        </q-btn>
+<!-- 
         <q-btn outline square color="white" @click="takeOutFud" :disable="!canWithdrawFud" v-if="!canUpgradeWithFud" class="q-mt-md">
             <div style="padding: 0; line-height: 30px;">
                 <img src="/fud.png" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle;"/>
                 Take out $FUD
             </div>
-        </q-btn>
+        </q-btn> -->
 
         <q-btn outline square color="white" @click="takeOutBuck" :disable="!canWithdrawBuck" v-if="!canUpgradeWithBuck" class="q-mt-md">
             <div style="padding: 0; line-height: 30px;">
@@ -137,9 +155,13 @@ export default {
 	},
 	data() {
 		return {
+            isLoading: false,
+
             contentSuiAmountAsString: '',
             fudAmountAsString: '',
             buckAmountAsString: '',
+            metaAmountAsString: '',
+
             stakedBuckAmountAsString: '',
             stakedBuckRewardsAsString: '',
 
@@ -155,9 +177,12 @@ export default {
         async recalcContent() {
             try {
                 clearTimeout(this.__refreshRewardsTimeout);
+
+                this.isLoading = true;
                 this.contentSuiAmountAsString = await this.$store.sui.amountToString(this.timecapsule.contentSuiAmount);
                 this.fudAmountAsString = await this.timecapsule.getStoredFUDAmount();
                 this.buckAmountAsString = await this.timecapsule.getStoredBuckAmount();
+                this.metaAmountAsString = await this.timecapsule.getStoredMetaAmount();
 
                 this.stakedBuckAmountAsString = await this.timecapsule.getStakedBuckAmount();
                 if (this.stakedBuckAmountAsString && this.stakedBuckAmountAsString != '0' && this.stakedBuckAmountAsString != '0.0') {
@@ -172,6 +197,8 @@ export default {
             } catch (e) {
                 console.error(e);
             }
+
+            this.isLoading = false;
         },
         async refreshRewards() {
             this.stakedBuckRewardsAsString = await this.timecapsule.getExpectedStakedRewards();
@@ -216,6 +243,26 @@ export default {
             await this.recalcContent();
             this.$emit('refresh');
         },
+        async attachMeta() {
+            if (!this.isConnected) {
+                await this.$store.sui.request();
+            }
+            const amount = await this.$refs.askAmountDialog.ask({
+                coinType: this.$store.sui.timeCapsuleContract.tokens.meta,
+                note: '1% to be taken as fee, rest is availiable for you anytime once capsule is decrypted'
+            });
+            await this.$store.sui.timeCapsuleContract.putCoin({
+                timeCapsuleId: this.timecapsule.id,
+                amount: amount,
+                coinType: this.$store.sui.timeCapsuleContract.tokens.meta,
+            });
+            await new Promise((res)=>setTimeout(res, 2000));
+            await this.$store.sui.suiMaster.objectStorage.fetchObjects();
+            await new Promise((res)=>setTimeout(res, 100));
+            await this.recalcContent();
+            this.$emit('refresh');
+
+        },
         async attachFud() {
             if (!this.isConnected) {
                 await this.$store.sui.request();
@@ -246,6 +293,19 @@ export default {
             await this.$store.sui.timeCapsuleContract.takeOutCoin({
                 timeCapsuleId: this.timecapsule.id,
                 coin: 'fud',
+            });
+            await new Promise((res)=>setTimeout(res, 2000));
+            await this.recalcContent();
+            this.$emit('refresh');
+        },
+        async takeOutMeta() {
+            if (!this.isConnected) {
+                await this.$store.sui.request();
+            }
+            
+            await this.$store.sui.timeCapsuleContract.takeOutCoin({
+                timeCapsuleId: this.timecapsule.id,
+                coin: 'meta',
             });
             await new Promise((res)=>setTimeout(res, 2000));
             await this.recalcContent();
@@ -287,6 +347,14 @@ export default {
                 return false;
             }
             return true;
+        },
+        canWithdrawMeta: function() {
+            if (this.timecapsule.decrypted) {
+                if (this.metaAmountAsString && this.metaAmountAsString != '0' && this.metaAmountAsString != '0.0') {
+                    return true;
+                }
+            }
+            return false;
         },
         canWithdrawFud: function() {
             if (this.timecapsule.decrypted && !this.canUpgradeWithFud) {
