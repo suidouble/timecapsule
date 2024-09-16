@@ -94,6 +94,13 @@
                 Upgrade with META
             </div>
         </q-btn>
+
+        <q-btn outline square color="white" @click="attachBuck" v-if="canUpgradeWithBuck" class="q-mt-md">
+            <div style="padding: 0; line-height: 30px;">
+                <img src="/buck.svg" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle;"/>
+                Upgrade with Bucket USD
+            </div>
+        </q-btn>
 <!-- 
         <q-btn outline square color="white" @click="attachFud" v-if="canUpgradeWithFud" class="q-mt-md">
             <div style="padding: 0; line-height: 30px;">
