@@ -62,6 +62,9 @@
                     <span style="padding-top: 8px; display: block;">
                         <img src="/meta.png" style="width: 40px; height: 40px; border-radius: 20px; vertical-align: middle; box-shadow: 0 0 2px 0px white inset, 0 0 2px 0px white;"/>&nbsp;{{metaAmountAsString}}<br/></span>  
 
+                    <span style="padding-top: 8px; display: block;">
+                        <img src="/fomo.png" style="width: 40px; height: 40px; border-radius: 20px; vertical-align: middle; box-shadow: 0 0 2px 0px white inset, 0 0 2px 0px white;"/>&nbsp;{{fomoAmountAsString}}<br/></span>  
+
                     <!-- <span v-if="fudAmountAsString && fudAmountAsString != '0'"> -->
                         <!-- <img src="/fud.png" style="width: 40px; height: 40px; border-radius: 20px; vertical-align: middle;"/>&nbsp;{{fudAmountAsString}}<br/></span>   -->
                     
@@ -92,52 +95,65 @@
 
         <AskAmountDialog ref="askAmountDialog" />
 
-        <q-btn outline square color="white" @click="attachMeta" v-if="canUpgradeWithBuck" class="q-mt-md">
-            <div style="padding: 0; line-height: 30px;">
-                <img src="/meta.png" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle; box-shadow: 0 0 2px 0px white inset, 0 0 2px 0px white;"/>
-                Upgrade with META
+        <q-btn size="sm" outline square color="white" @click="attachFomo" v-if="canUpgradeWithBuck" class="q-mt-md">
+            <div style="padding: 0; line-height: 26px;">
+                <img src="/fomo.png" style="width: 24px; height: 24px; border-radius: 12px; vertical-align: middle; box-shadow: 0 0 2px 0px white inset, 0 0 2px 0px white;"/>
+                Upgrade with FOMO
+            </div>
+        </q-btn>
+        <q-btn size="sm" outline square color="white" @click="takeOutFomo" :disable="!canWithdrawFomo" class="q-mt-md">
+            <div style="padding: 0; line-height: 26px;">
+                <img src="/fomo.png" style="width: 24px; height: 24px; border-radius: 12px; vertical-align: middle; box-shadow: 0 0 2px 0px white inset, 0 0 2px 0px white;"/>
+                Take out FOMO
             </div>
         </q-btn>
 
-        <q-btn outline square color="white" @click="attachBuck" v-if="canUpgradeWithBuck" class="q-mt-md">
-            <div style="padding: 0; line-height: 30px;">
-                <img src="/buck.svg" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle;"/>
+        <q-btn size="sm" outline square color="white" @click="attachMeta" v-if="canUpgradeWithBuck" class="q-mt-md">
+            <div style="padding: 0; line-height: 26px;">
+                <img src="/meta.png" style="width: 24px; height: 24px; border-radius: 12px; vertical-align: middle; box-shadow: 0 0 2px 0px white inset, 0 0 2px 0px white;"/>
+                Upgrade with META
+            </div>
+        </q-btn>
+        <q-btn size="sm" outline square color="white" @click="takeOutMeta" :disable="!canWithdrawMeta" class="q-mt-md">
+            <div style="padding: 0; line-height: 26px;">
+                <img src="/meta.png" style="width: 24px; height: 24px; border-radius: 12px; vertical-align: middle; box-shadow: 0 0 2px 0px white inset, 0 0 2px 0px white;"/>
+                Take out META
+            </div>
+        </q-btn>
+
+        <q-btn size="sm" outline square color="white" @click="attachBuck" v-if="canUpgradeWithBuck" class="q-mt-md">
+            <div style="padding: 0; line-height: 26px;">
+                <img src="/buck.svg" style="width: 24px; height: 24px; border-radius: 12px; vertical-align: middle;"/>
                 Upgrade with Bucket USD
             </div>
         </q-btn>
 <!-- 
         <q-btn outline square color="white" @click="attachFud" v-if="canUpgradeWithFud" class="q-mt-md">
-            <div style="padding: 0; line-height: 30px;">
-                <img src="/fud.png" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle;"/>
+            <div style="padding: 0; line-height: 26px;">
+                <img src="/fud.png" style="width: 24px; height: 24px; border-radius: 12px; vertical-align: middle;"/>
                 Upgrade with $FUD
             </div>
         </q-btn> -->
 
 
-        <q-btn outline square color="white" @click="takeOutMeta" :disable="!canWithdrawMeta" class="q-mt-md">
-            <div style="padding: 0; line-height: 30px;">
-                <img src="/meta.png" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle; box-shadow: 0 0 2px 0px white inset, 0 0 2px 0px white;"/>
-                Take out META
-            </div>
-        </q-btn>
 <!-- 
         <q-btn outline square color="white" @click="takeOutFud" :disable="!canWithdrawFud" v-if="!canUpgradeWithFud" class="q-mt-md">
-            <div style="padding: 0; line-height: 30px;">
-                <img src="/fud.png" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle;"/>
+            <div style="padding: 0; line-height: 26px;">
+                <img src="/fud.png" style="width: 24px; height: 24px; border-radius: 12px; vertical-align: middle;"/>
                 Take out $FUD
             </div>
         </q-btn> -->
 
-        <q-btn outline square color="white" @click="takeOutBuck" :disable="!canWithdrawBuck" v-if="!canUpgradeWithBuck" class="q-mt-md">
-            <div style="padding: 0; line-height: 30px;">
-                <img src="/buck.svg" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle;"/>
+        <q-btn size="sm" outline square color="white" @click="takeOutBuck" :disable="!canWithdrawBuck" v-if="!canUpgradeWithBuck" class="q-mt-md">
+            <div style="padding: 0; line-height: 26px;">
+                <img src="/buck.svg" style="width: 24px; height: 24px; border-radius: 12px; vertical-align: middle;"/>
                 Take out Bucket USD
             </div>
         </q-btn>
 
-        <q-btn outline square color="white" @click="unstake" :disable="!canUnstakeBuck" v-if="stakedBuckAmountAsString && stakedBuckAmountAsString != '0'" class="q-mt-md">
-            <div style="padding: 0; line-height: 30px;">
-                <img src="/buck.svg" style="width: 30px; height: 30px; border-radius: 15px; vertical-align: middle;"/>
+        <q-btn size="sm" outline square color="white" @click="unstake" :disable="!canUnstakeBuck" v-if="stakedBuckAmountAsString && stakedBuckAmountAsString != '0'" class="q-mt-md">
+            <div style="padding: 0; line-height: 26px;">
+                <img src="/buck.svg" style="width: 24px; height: 24px; border-radius: 12px; vertical-align: middle;"/>
                 Unstake Bucket USD
             </div>
         </q-btn>
@@ -174,6 +190,7 @@ export default {
             fudAmountAsString: '',
             buckAmountAsString: '',
             metaAmountAsString: '',
+            fomoAmountAsString: '',
 
             stakedBuckAmountAsString: '',
             stakedBuckRewardsAsString: '',
@@ -196,6 +213,7 @@ export default {
                 this.fudAmountAsString = await this.timecapsule.getStoredFUDAmount();
                 this.buckAmountAsString = await this.timecapsule.getStoredBuckAmount();
                 this.metaAmountAsString = await this.timecapsule.getStoredMetaAmount();
+                this.fomoAmountAsString = await this.timecapsule.getStoredFomoAmount();
 
                 this.stakedBuckAmountAsString = await this.timecapsule.getStakedBuckAmount();
                 if (this.stakedBuckAmountAsString && this.stakedBuckAmountAsString != '0' && this.stakedBuckAmountAsString != '0.0') {
@@ -256,6 +274,26 @@ export default {
             await this.recalcContent();
             this.$emit('refresh');
         },
+        async attachFomo() {
+            if (!this.isConnected) {
+                await this.$store.sui.request();
+            }
+            const amount = await this.$refs.askAmountDialog.ask({
+                coinType: this.$store.sui.timeCapsuleContract.tokens.fomo,
+                note: '1% to be taken as fee, rest is availiable for you anytime once capsule is decrypted'
+            });
+            await this.$store.sui.timeCapsuleContract.putCoin({
+                timeCapsuleId: this.timecapsule.id,
+                amount: amount,
+                coinType: this.$store.sui.timeCapsuleContract.tokens.fomo,
+            });
+            await new Promise((res)=>setTimeout(res, 2000));
+            await this.$store.sui.suiMaster.objectStorage.fetchObjects();
+            await new Promise((res)=>setTimeout(res, 100));
+            await this.recalcContent();
+            this.$emit('refresh');
+
+        },
         async attachMeta() {
             if (!this.isConnected) {
                 await this.$store.sui.request();
@@ -311,6 +349,20 @@ export default {
             await this.recalcContent();
             this.$emit('refresh');
         },
+        async takeOutFomo() {
+            if (!this.isConnected) {
+                await this.$store.sui.request();
+            }
+            
+            await this.$store.sui.timeCapsuleContract.takeOutCoin({
+                timeCapsuleId: this.timecapsule.id,
+                coin: 'fomo',
+            });
+            await new Promise((res)=>setTimeout(res, 2000));
+            await this.recalcContent();
+            this.$emit('refresh');
+
+        },
         async takeOutMeta() {
             if (!this.isConnected) {
                 await this.$store.sui.request();
@@ -364,6 +416,14 @@ export default {
         canWithdrawMeta: function() {
             if (this.timecapsule.decrypted) {
                 if (this.metaAmountAsString && this.metaAmountAsString != '0' && this.metaAmountAsString != '0.0') {
+                    return true;
+                }
+            }
+            return false;
+        },
+        canWithdrawFomo: function() {
+            if (this.timecapsule.decrypted) {
+                if (this.fomoAmountAsString && this.fomoAmountAsString != '0' && this.fomoAmountAsString != '0.0') {
                     return true;
                 }
             }

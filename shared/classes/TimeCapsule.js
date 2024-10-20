@@ -149,7 +149,15 @@ export default class TimeCapsule {
 
     async getExpectedStakedRewards() {
         const buckStaker = new BuckStaker({suiMaster: this.suiMaster});
-        const fountain = await buckStaker.getFountain();
+
+        let fountain = null;
+        if (this.__fountain) {
+            fountain = this.__fountain;
+        } else {
+            fountain = await buckStaker.getFountain();
+            this.__fountain = fountain;
+        }
+        // const fountain = await buckStaker.getFountain();
         let rewards = BigInt(0);
 
         for (const stakeProof of this._stakeProofs) {
@@ -285,6 +293,12 @@ export default class TimeCapsule {
         }
     }
 
+    async getStoredFomoAmount() {
+        if (this.contract && this.contract.tokens && this.contract.tokens.fomo) {
+            return await this.getStoredCoinAmount({ coinType: this.contract.tokens.fomo });
+        }
+    }
+
     async getStakedBuckAmount() {
         const SuiObject = this.suiMaster.SuiObject;
         const bagId = this._suiObject.fields.object_bag.fields.id.id;
@@ -326,7 +340,13 @@ export default class TimeCapsule {
             coin._metadata = await getCoinMeta(this.suiMaster.client, coinType);
         } catch (e) {
             console.error(e);
-            coin._metadata = { decimals: 9 };
+
+            if (coinType.indexOf('META') !== -1) {
+                coin._metadata = { decimals: 9 };
+            }
+            if (coinType.indexOf('FOMO') !== -1) {
+                coin._metadata = { decimals: 2 };
+            }
         }
         // console.error('meta', meta);
         // console.error('meta', meta);
