@@ -1,6 +1,6 @@
 #[allow(unused_variable, unused_use)]
 module timecapsule::timecapsule {
-    const VERSION: u64 = 3;
+    const VERSION: u64 = 4;
 
     // use std::string::{Self, utf8, String};
 
@@ -163,8 +163,33 @@ module timecapsule::timecapsule {
         transfer::share_object(timecapsule_store);
     }
 
+    public fun id(timecapsule: &Timecapsule): &ID {
+        object::uid_as_inner(&timecapsule.id)
+    }
+
+    public fun for_round(timecapsule: &Timecapsule): u64 {
+        timecapsule.for_round
+    }
+
+    public fun stored_coin_amount<T>(timecapsule: &Timecapsule): u64 {
+        let typen = type_name::get<T>();
+        let type_as_string = typen.into_string();
+
+        if (timecapsule.object_bag.contains(type_as_string)) {
+            let already_coin_ref:& Coin<T> = timecapsule.object_bag.borrow(type_as_string);
+            return coin::value(already_coin_ref)
+        };
+
+        0
+    }
+
     #[test_only]
     public(package) fun make_and_share_store_for_testing(ctx: &mut TxContext) {
+        make_and_share_store(ctx);
+    }
+
+    #[test_only]
+    public fun public_make_and_share_store_for_testing(ctx: &mut TxContext) {
         make_and_share_store(ctx);
     }
 
@@ -181,7 +206,7 @@ module timecapsule::timecapsule {
         store.version = VERSION;
     }
 
-    public entry fun mint_with_sui(store: &mut TimecapsuleStore, encrypted_prophecy: vector<u8>, for_round: u64, mut coin: Coin<SUI>, ctx: &mut TxContext) {
+    public fun mint_with_sui_no_entry(store: &mut TimecapsuleStore, encrypted_prophecy: vector<u8>, for_round: u64, mut coin: Coin<SUI>, ctx: &mut TxContext): Timecapsule {
         assert!(store.version == VERSION, EWrongVersion);
 
         if (for_round < 1) {
@@ -220,6 +245,11 @@ module timecapsule::timecapsule {
 
         store.count_minted = store.count_minted + 1;
 
+        timecapsule
+    }
+
+    public entry fun mint_with_sui(store: &mut TimecapsuleStore, encrypted_prophecy: vector<u8>, for_round: u64, mut coin: Coin<SUI>, ctx: &mut TxContext) {
+        let timecapsule = mint_with_sui_no_entry(store, encrypted_prophecy, for_round, coin, ctx);
         transfer::transfer(timecapsule, tx_context::sender(ctx));
     }
 

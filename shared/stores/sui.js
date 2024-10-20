@@ -101,6 +101,10 @@ export const useSuiStore = defineStore('sui', {
 
 			const chainString = (''+this.connectedChain).split('sui:').join('');
 
+			if (chainString == 'localnet') {
+				return 'https://explorer.polymedia.app/object/'+id+'?network=local'
+			}
+
 			return 'https://suiscan.xyz/'+chainString+'/'+type+'/'+id;
 		},
 		async request() {

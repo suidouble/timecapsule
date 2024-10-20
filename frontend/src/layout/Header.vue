@@ -20,7 +20,7 @@
 </template>
 <script>
 // import ColorWave from '../components/ColorWave.vue';
-import Logo from './Logo';
+import Logo from './Logo.vue';
 // import Auth from 'shared/components/Auth';
 import ChainSelector from '../components/chain_selector/ChainSelector.vue';
 // import DarkChanger from 'shared/components/LayoutElements/DarkChanger.vue';

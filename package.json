@@ -1,7 +1,6 @@
 {
-  "name": "doubleliquid-dapp",
-  "version": "0.69.1",
-  "private": true,
+  "name": "hexcapsule",
+  "version": "0.1.0",
   "scripts": {
     "test": "tap -j=1 ./test/*.test.js",
     "coverage": "tap -j=1 ./test/*.test.js",
@@ -16,48 +15,30 @@
     "node": "18.16.0"
   },
   "dependencies": {
-    "@fastify/cookie": "^7.0.0",
-    "@fastify/cors": "^8.0.0",
-    "@fastify/formbody": "^7.0.1",
-    "@fastify/static": "^6.11.0",
-    "@mysten/bcs": "^1.0.1",
-    "axios": "^0.23.0",
-    "blakejs": "^1.2.1",
-    "fastify": "^4.2.0",
-    "get-random-values": "^3.0.0",
-    "lockfile": "^1.0.4",
-    "node-fetch": "^2.6.7",
-    "suidouble": "0.0.51",
-    "suidouble_metadata": "^0.0.10",
-    "vue-sui": "0.0.52",
-    "vue3-apexcharts": "^1.4.4",
-    "winston": "^2.3.1"
+    "@fastify/static": "^7.0.4",
+    "fastify": "^4.27.0"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.22.15",
-    "@quasar/extras": "^1.0.0",
-    "@vue/cli-plugin-babel": "~5.0.8",
-    "@vue/cli-plugin-eslint": "~5.0.8",
-    "@vue/cli-service": "~5.0.8",
-    "@vue/compiler-sfc": "^3.0.0",
-    "apexcharts": "^3.35.3",
-    "babel-eslint": "^10.1.0",
-    "compression-webpack-plugin": "6.0.5",
-    "core-js": "^3.6.5",
-    "eslint": "^7.5.0",
-    "eslint-plugin-vue": "^7.0.0",
-    "node-polyfill-webpack-plugin": "^2.0.1",
-    "nodemon": "^2.0.14",
-    "pinia": "^2.0.14",
-    "quasar": "^2.11.6",
-    "tap": "^16.3.4",
-    "ts-loader": "^8.0.16",
-    "val-loader": "^2.1.2",
-    "vue": "^3.0.0",
-    "vue-cli-plugin-quasar": "~5.1.0",
-    "vue-recaptcha-v3": "^2.0.1",
-    "vue-router": "^4.0.11",
-    "worker-loader": "^3.0.8"
+    "@mysten/bcs": "^1.0.4",
+    "@noble/curves": "^1.6.0",
+    "@noble/hashes": "^1.5.0",
+    "@polymedia/coinmeta": "^0.0.16",
+    "@quasar/extras": "^1.16.11",
+    "@quasar/vite-plugin": "^1.7.0",
+    "@vitejs/plugin-vue": "^5.0.5",
+    "blakejs": "^1.2.1",
+    "crypto-js": "^4.2.0",
+    "get-random-values": "^3.0.0",
+    "minimist": "^1.2.8",
+    "pinia": "^2.1.7",
+    "quasar": "^2.16.4",
+    "suidouble": "1.13.0-2",
+    "suidouble_metadata": "^0.0.10",
+    "tap": "^16.3.10",
+    "vite": "^5.2.12",
+    "vue": "^3.4.27",
+    "vue-router": "^4.3.2",
+    "vue-sui": "1.13.0"
   },
   "eslintConfig": {
     "root": true,
@@ -69,8 +50,7 @@
       "eslint:recommended"
     ],
     "parserOptions": {
-      "parser": "babel-eslint",
-      "ecmaVersion": 2020
+      "parser": "babel-eslint"
     },
     "rules": {}
   },

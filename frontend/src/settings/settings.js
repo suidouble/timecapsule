@@ -11,9 +11,9 @@ export default {
 	quasar: {
 		config: {
 			dark: true,
-			basePath: (process.env.BUILD_PREFIXED ? ('/'+process.env.BUILD_PREFIXED) : ''),
+			basePath: '/',
 			brand: {
-				title: 'sui.time.capsule',
+				title: 'HexCapsule',
 				// https://quasar.dev/style/theme-builder
 				// Also take a look at ./styles/vars.css
 				primary: '#4099ff',

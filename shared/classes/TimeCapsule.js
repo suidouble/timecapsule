@@ -2,6 +2,7 @@
 import TimeCapsuleEncryptor from '../classes/TimeCapsuleEncryptor';
 import DrandRounds from '../classes/DrandRounds';
 import BuckStaker from './BuckStaker';
+import { getCoinMeta } from "@polymedia/coinmeta";
 
 export default class TimeCapsule {
     constructor(params = {}) {
@@ -319,13 +320,26 @@ export default class TimeCapsule {
         // console.log(params);
         const coinType = params.coinType;// '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN';
         const coin = await this.suiMaster.suiCoins.get(coinType);
-        await coin.getMetadata();
+        // await coin.getMetadata();
+
+        try {
+            coin._metadata = await getCoinMeta(this.suiMaster.client, coinType);
+        } catch (e) {
+            console.error(e);
+            coin._metadata = { decimals: 9 };
+        }
+        // console.error('meta', meta);
+        // console.error('meta', meta);
+        // console.error('meta', meta);
+        // alert(coinType);
 
         const SuiObject = this.suiMaster.SuiObject;
         const bagId = this._suiObject.fields.object_bag.fields.id.id;
 
         const objectBag = new SuiObject({id: bagId, suiMaster: this.suiMaster});
         const objectBagFields = await objectBag.getDynamicFields();
+
+        console.error(coin);
 
         let amount = 0;
         await objectBagFields.forEach(async(field)=>{
