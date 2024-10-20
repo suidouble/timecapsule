@@ -6,7 +6,7 @@ const run = async()=>{
     const phrase = config.phrase;
     const chain = config.chain;
 
-    const suiMaster = new SuiMaster({provider: chain, phrase: phrase, debug: true});
+    const suiMaster = new SuiMaster({client: chain, phrase: phrase, debug: true});
 
     try {
         await suiMaster.requestSuiFromFaucet();

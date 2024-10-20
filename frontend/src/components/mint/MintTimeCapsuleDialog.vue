@@ -314,7 +314,7 @@ export default {
             return false;
         },
         canMint: function() {
-            return (!this.messageEncryptionPending && this.messageEncrypted && this.enoughSuiForMint);
+            return (!this.messageEncryptionPending && this.messageEncrypted && this.enoughSuiForMint && this.targetDrandRound > 0);
         },
 	},
 	unmounted: function() {

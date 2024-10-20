@@ -4,9 +4,12 @@ import TimeCapsule from './TimeCapsule';
 import { bcs } from '@mysten/bcs';
 import BuckStaker from './BuckStaker';
 
+import ids from 'shared/classes/ids.js';
+
 export default class TimeCapsuleContract {
     constructor(params = {}) {
         this._chain = params.chain || 'sui:testnet';
+        
         this._suiMaster = params.suiMaster || null;
         this._packageId = null;
         this._module = null;
@@ -15,29 +18,11 @@ export default class TimeCapsuleContract {
 
         this._tokens = {};
 
-        const chains = {
-            'testnet': {
-                packageId: '0x95715c5f309fc2e64192d079652380282d1157fa048e711afc7878afd4af1bf1',
-                tokens: {
-                    fud: '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN',
-                    buck: '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN',
-                    meta: '0x1d4a80381ecca0ea3ea458bf9f0d633323f7226070b85d2de45c091938cfc0fa::meta::META',
-                },
-            },
-            'mainnet': {
-                packageId: '0xc92ff78629d8852b280b41c0016fe1d4c58bf4d9aae84f6faaab0257a0fdc949',
-                tokens: {
-                    fud: '0x76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1::fud::FUD',
-                    buck: '0xce7ff77a83ea0cb6fd39bd8748e2ec89a3f41e8efdc3f4eb123e0ca37b184db2::buck::BUCK',
-                    meta: '0x3c680197c3d3c3437f78a962f4be294596c5ebea6cea6764284319d5e832e8e4::meta::META',
-                },
-            },
-        };
-
         const chainName = (this._chain).split('sui:').join('');
-        if (chains[chainName]) {
-            this._packageId = chains[chainName].packageId;
-            this._tokens = chains[chainName].tokens;
+        if (ids[chainName]) {
+            this._packageId = ids[chainName].timecapsule.packageId;
+            this._storeId = ids[chainName].timecapsule.storeId;
+            this._tokens = ids[chainName].tokens;
         }
         
         Log.tag('TimeCapsuleContract').info('chain', this._chain, 'packageId', this._packageId, 'tokens', this._tokens);
@@ -96,22 +81,26 @@ export default class TimeCapsuleContract {
         }
 
 
-
-        const paginatedResponseEvents = await this._module.fetchEvents({eventTypeName: 'NewTimecapsuleEvent', order: 'descending'});
         const additionalObjects = [];
-        await paginatedResponseEvents.forEach(async (suiEvent)=>{
-            const objectId = suiEvent.parsedJson.id;
-            if (!this._timeCapsulesIds[objectId]) {
-                const obj = new (this.suiMaster.SuiObject)({
-                    suiMaster: this.suiMaster,
-                    id: objectId,
-                });
-                additionalObjects.push(obj);
-                await this.suiMaster.objectStorage.push(obj);
-            }
-    
-            // Log.tag('TimeCapsuleContract').info(suiEvent);
-        }, 50);
+
+        try {
+            const paginatedResponseEvents = await this._module.fetchEvents({eventTypeName: 'NewTimecapsuleEvent', order: 'descending'});
+            await paginatedResponseEvents.forEach(async (suiEvent)=>{
+                const objectId = suiEvent.parsedJson.id;
+                if (!this._timeCapsulesIds[objectId]) {
+                    const obj = new (this.suiMaster.SuiObject)({
+                        suiMaster: this.suiMaster,
+                        id: objectId,
+                    });
+                    additionalObjects.push(obj);
+                    await this.suiMaster.objectStorage.push(obj);
+                }
+        
+                // Log.tag('TimeCapsuleContract').info(suiEvent);
+            }, 3);
+        } catch (e) {
+            Log.tag('TimeCapsuleContract').error(e);
+        }
     
         await this.suiMaster.objectStorage.fetchObjects();
 
@@ -244,19 +233,20 @@ export default class TimeCapsuleContract {
 
         try {
             Log.tag('TimeCapsuleContract').info('goint to take out token from capsule');
-            const TransactionBlock = this.suiMaster.TransactionBlock;
-            const txBlock = new TransactionBlock();
+            const Transaction = this.suiMaster.Transaction;
+            const tx = new Transaction();
             const callArgs = [];
-            callArgs.push(txBlock.pure(this._storeId));
-            callArgs.push(txBlock.pure(timeCapsuleId));
 
-            txBlock.moveCall({
+            callArgs.push(tx.object(this._storeId));
+            callArgs.push(tx.object(timeCapsuleId));
+
+            tx.moveCall({
                 target: `${this._module._package.address}::${this._module._moduleName}::take_out_coin`,
                 arguments: callArgs,
                 typeArguments: [coinType],
             });
 
-            const res = await this._module.moveCall('take_out_coin', {tx: txBlock});
+            const res = await this._module.moveCall('take_out_coin', {tx: tx});
             if (res && res.status && res.status == 'success') {
                 return true;
             }
@@ -284,23 +274,28 @@ export default class TimeCapsuleContract {
 
         try {
             Log.tag('TimeCapsuleContract').info('goint to put coin into time capsule');
-            const TransactionBlock = this.suiMaster.TransactionBlock;
-            const txBlock = new TransactionBlock();
+            const Transaction = this.suiMaster.Transaction;
+            // const txInput = this.suiMaster.txInput;
+
+            const tx = new Transaction();
             const callArgs = [];
-            callArgs.push(txBlock.pure(this._storeId));
-            callArgs.push(txBlock.pure(timeCapsuleId));
+            callArgs.push(tx.object(this._storeId));
+            callArgs.push(tx.object(timeCapsuleId));
+
+            // callArgs.push(txBlock.pure(this._storeId));
+            // callArgs.push(txBlock.pure(timeCapsuleId));
 
             const coin = await this._suiMaster.suiCoins.get(coinType);
-            const txCoinToSend = await coin.coinOfAmountToTxCoin(txBlock, ownerAddress, amount);
+            const txCoinToSend = await coin.coinOfAmountToTxCoin(tx, ownerAddress, amount);
             callArgs.push(txCoinToSend);
 
-            txBlock.moveCall({
+            tx.moveCall({
                 target: `${this._module._package.address}::${this._module._moduleName}::put_coin_to_bag`,
                 arguments: callArgs,
                 typeArguments: [coinType],
             });
 
-            const res = await this._module.moveCall('put_coin_to_bag', {tx: txBlock});
+            const res = await this._module.moveCall('put_coin_to_bag', {tx: tx});
             if (res && res.status && res.status == 'success') {
                 return true;
             }
@@ -398,10 +393,12 @@ export default class TimeCapsuleContract {
         const targetDrandRound = params.targetDrandRound;
         const sui = params.sui;
 
+        const txInput = this._suiMaster.utils.txInput;
+
         const messageEncryptedBCS = bcs.vector(bcs.u8()).serialize(messageEncrypted).toBytes();
 
         try {
-            const mintParams = [this._storeId, messageEncryptedBCS, targetDrandRound];
+            const mintParams = [this._storeId, messageEncryptedBCS, this._module.arg('u64', targetDrandRound)];
             let method = 'mint';
             if (sui) {
                 mintParams.push({type: 'SUI', amount: sui});

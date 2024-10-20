@@ -40,7 +40,7 @@ export default {
 
             settings: {
                 'sui:localnet': {
-                    packageId: '0x83393a2a8c82c627486e5d8efb0cfaa6a66d9a1b377edd10db3bf91d7a28b4b8',
+                    packageId: '0xd08805ad9fa7fda7b1748a4da1886482b7193c237a504dbef67c8f87ef881953',
                     firstVPackageId: '',
                     liquidStoreId: '0x95cf9c47683552342ee33550495012652cda1ffc0a8ef11b9a558edbf7caefb5',
                     liquidStatsId: '0xf5d20fb71f33f2b0f2605e8efb1ba62aadceb2d5ce407885e43c6ab67b3fc637',

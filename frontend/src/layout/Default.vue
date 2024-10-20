@@ -13,8 +13,8 @@
 </template>
 
 <script>
-import Header from './Header';
-import Footer from './Footer';
+import Header from './Header.vue';
+import Footer from './Footer.vue';
 import RoutedPage from './RoutedPage.vue';
 
 export default {

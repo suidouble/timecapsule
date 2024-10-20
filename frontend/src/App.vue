@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import LayoutDefault from './layout/Default';
+import LayoutDefault from './layout/Default.vue';
 
 
 export default {

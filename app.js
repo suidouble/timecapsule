@@ -20,23 +20,24 @@ const commands = {
 		// },
 		{
 			id: 'frontend',
-			// cwd: path.join(__dirname, 'frontend'),
+			cwd: path.join(__dirname, 'frontend'),
 			env: {
-				API_URL: "http://localhost:9999/",
+				// API_URL: "http://localhost:9999/",
 				PART: "frontend",
+				FORCE_COLOR: "1", 
 			},
-			command: 'node_modules/.bin/vue-cli-service',
-			args: ['serve', 'frontend/src/main.js', '--port', '8090'],
+			command: path.join(__dirname, "node_modules/.bin/vite"),
+			args: ['serve', '--config', 'vite.config.mjs', '--port', '8090'],
 		},
-		{
-			id: 'backend',
-			cwd: path.join(__dirname, 'backend'),
-			env: {
-				PORT: "9999",
-			},
-			command: '../node_modules/.bin/nodemon',
-			args: ['app.js'],
-		},
+		// {
+		// 	id: 'backend',
+		// 	cwd: path.join(__dirname, 'backend'),
+		// 	env: {
+		// 		PORT: "9999",
+		// 	},
+		// 	command: '../node_modules/.bin/nodemon',
+		// 	args: ['app.js'],
+		// },
 	],
 	build: [
 		// {
@@ -53,15 +54,16 @@ const commands = {
 		// },
 		{
 			id: 'frontend',
-			// cwd: path.join(__dirname, 'frontend'),
+			cwd: path.join(__dirname, 'frontend'),
 			env: {
 				BUILD_PREFIXED: "",
 				API_URL: "/",
 				PART: "frontend",
-				NODE_ENV: "production"
+				NODE_ENV: "production",
+				FORCE_COLOR: "1", 
 			},
-			command: 'node_modules/.bin/vue-cli-service',
-			args: ['build', 'frontend/src/main.js', '--mode production'],
+			command: path.join(__dirname, 'node_modules/.bin/vite'),
+			args: ['build', '--config', 'vite.config.mjs'],
 		},
 	],
 	run: [
@@ -70,6 +72,7 @@ const commands = {
 			cwd: path.join(__dirname, 'backend'),
 			env: {
 				PORT: "9999",
+				FORCE_COLOR: "1", 
 			},
 			command: 'node',
 			args: ['app.js'],
@@ -97,6 +100,7 @@ function doOutput() {
 		const toDisplay = out[processId].slice(-15);
 		for (let line of toDisplay) {
 			// console.log(new TextEncoder().encode(line))
+			// console.log(`${processId}: ${line}`);
 			console.log(`${processId}: ${line}`);
 		}
 		console.log('');
@@ -119,7 +123,7 @@ function log(processId, str) {
 	for (const line of data) {
 		if (line && (!out[processId].length || out[processId][out[processId].length - 1] != line)) {
 			out[processId].push(line);
-			console.log(`${processId}: ${data}`);
+			console.log(`${processId}: ${line}`);
 		}
 	}
 
@@ -143,6 +147,7 @@ async function doSpawn(settings) {
 	const options = {
 		env: envCopy,
 		cwd: settings.cwd,
+		// stdio: 'inherit',
 	};
 
 
