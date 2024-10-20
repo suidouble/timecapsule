@@ -3,6 +3,7 @@ import TimeCapsuleEncryptor from '../classes/TimeCapsuleEncryptor';
 import DrandRounds from '../classes/DrandRounds';
 import BuckStaker from './BuckStaker';
 import { getCoinMeta } from "@polymedia/coinmeta";
+import { formatCurrency } from './Format.js';
 
 export default class TimeCapsule {
     constructor(params = {}) {
@@ -372,7 +373,7 @@ export default class TimeCapsule {
                             console.error(obj);
                             console.error(coin.amountToString(obj.fields.balance));
 
-                            amount = coin.amountToString(obj.fields.balance);
+                            amount = formatCurrency(obj.fields.balance, { decimals: coin._metadata.decimals} ); // coin.amountToString(obj.fields.balance);
                         }
                 }
             }
