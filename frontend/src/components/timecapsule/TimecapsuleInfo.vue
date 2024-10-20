@@ -23,9 +23,13 @@
                 </td>
             </tr>
             <tr v-if="!timecapsule.is404">
-                <td>Owner</td>
-                <td>{{timecapsule.longDisplayOwnerAddress}} <span v-if="timecapsule.ownedByYou">(you)</span>
-                    <q-btn :href="timecapsule.ownerUrlOnExplorer"  flat size="xs" round target="_blank"  color="primary" icon="link" />
+                <td valign="top">Owner</td>
+                <td valign="top">{{timecapsule.longDisplayOwnerAddress}}<q-btn :href="timecapsule.ownerUrlOnExplorer"  flat size="xs" round target="_blank"  color="primary" icon="link" />
+                    <span v-if="timecapsule.ownedByYou"><br/>(you)
+                        <q-btn outline size="xs" color="primary" icon="send" @click="$refs.transfer.ask({objectId: timecapsule.id})" />
+                        <TransferDialog ref="transfer" />
+                    </span>
+                    
                 </td>
             </tr>
             <tr v-if="!timecapsule.is404">
@@ -148,12 +152,14 @@
 <script>
 import DateHuman from 'shared/components/Helpers/DateHuman.vue';
 import AskAmountDialog from '../ask_amount_dialog/AskAmountDialog.vue';
+import TransferDialog from '../transfer_dialog/TransferDialog.vue';
 
 export default {
 	name: 'TimecapsuleInfo',
     components:{
         DateHuman,
         AskAmountDialog,
+        TransferDialog,
     },
 	props: {
         timecapsule: {
