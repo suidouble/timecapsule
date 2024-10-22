@@ -29,5 +29,14 @@ export default defineConfig(async ({ command, mode }) => {
                 force: true,
                 // exclude: ['vue-sui', 'suidouble'],
             },
+            // build: {
+            //     rollupOptions: {
+            //         output: {
+            //             entryFileNames: `assets/[name].js`,
+            //             chunkFileNames: `assets/[name].js`,
+            //             assetFileNames: `assets/[name].[ext]`,
+            //         },
+            //     },
+            // },
         };
 });

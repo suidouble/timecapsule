@@ -84,7 +84,7 @@ export default class TimeCapsuleContract {
         const additionalObjects = [];
 
         try {
-            const paginatedResponseEvents = await this._module.fetchEvents({eventTypeName: 'NewTimecapsuleEvent', order: 'descending'});
+            const paginatedResponseEvents = await this._module.fetchEvents({eventTypeName: 'NewTimecapsuleEvent', order: 'descending', limit: 10});
             await paginatedResponseEvents.forEach(async (suiEvent)=>{
                 const objectId = suiEvent.parsedJson.id;
                 if (!this._timeCapsulesIds[objectId]) {
@@ -97,7 +97,7 @@ export default class TimeCapsuleContract {
                 }
         
                 // Log.tag('TimeCapsuleContract').info(suiEvent);
-            }, 3);
+            }, 10);
         } catch (e) {
             Log.tag('TimeCapsuleContract').error(e);
         }
