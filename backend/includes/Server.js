@@ -1,10 +1,10 @@
 const Fastify = require('fastify');
 
 // const fastifyServerAuth = require('./FastifyServerAuth.js');
-const fastifyCookie = require('@fastify/cookie');
-const fastifyFormbody = require('@fastify/formbody');
+// const fastifyCookie = require('@fastify/cookie');
+// const fastifyFormbody = require('@fastify/formbody');
 // const fastifyMongooseAPI = require('fastify-mongoose-api');
-const fastifyCors = require('@fastify/cors');
+// const fastifyCors = require('@fastify/cors');
 
 class Server {
     constructor(params = {}) {
@@ -29,12 +29,12 @@ class Server {
     }
 
     async beforeInit(fastify) {
-        fastify.register(fastifyCookie);
-        fastify.register(fastifyFormbody);
-        fastify.register(fastifyCors, {
-            exposedHeaders: 'set-cookie',
-            credentials: true,
-        });
+        // fastify.register(fastifyCookie);
+        // fastify.register(fastifyFormbody);
+        // fastify.register(fastifyCors, {
+        //     exposedHeaders: 'set-cookie',
+        //     credentials: true,
+        // });
         // fastify.register(fastifyServerAuth, {
         //         getUserByAuthCode: async (authCode)=>{
         //             return await this.db.User.byAuthCode(authCode);

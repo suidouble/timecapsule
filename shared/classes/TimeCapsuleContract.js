@@ -84,7 +84,7 @@ export default class TimeCapsuleContract {
         const additionalObjects = [];
 
         try {
-            const paginatedResponseEvents = await this._module.fetchEvents({eventTypeName: 'NewTimecapsuleEvent', order: 'descending'});
+            const paginatedResponseEvents = await this._module.fetchEvents({eventTypeName: 'NewTimecapsuleEvent', order: 'descending', limit: 10});
             await paginatedResponseEvents.forEach(async (suiEvent)=>{
                 const objectId = suiEvent.parsedJson.id;
                 if (!this._timeCapsulesIds[objectId]) {
@@ -97,7 +97,7 @@ export default class TimeCapsuleContract {
                 }
         
                 // Log.tag('TimeCapsuleContract').info(suiEvent);
-            }, 3);
+            }, 10);
         } catch (e) {
             Log.tag('TimeCapsuleContract').error(e);
         }
@@ -228,6 +228,9 @@ export default class TimeCapsuleContract {
         }
         if (params.coin == 'meta') {
             coinType = this.tokens['meta'];
+        }
+        if (params.coin == 'fomo') {
+            coinType = this.tokens['fomo'];
         }
         // const coinType = '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN';
 

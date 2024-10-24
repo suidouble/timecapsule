@@ -44,6 +44,8 @@ export default {
 
             coinIcon: null,
             note: '',
+
+            coinName: '',
         }
 	},
 	watch: {

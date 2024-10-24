@@ -16,6 +16,7 @@
 
           <q-btn flat type="a" to="/about" label="About" />
           <q-btn flat type="a" href="https://github.com/suidouble/timecapsule" label="GitHub" />
+          <q-btn flat type="a" :href="packageIdURL" target="_blank" label="PackageID" />
           <q-btn flat type="a" href="https://twitter.com/suidouble" target="_blank" label="Twitter" />
 
  
@@ -29,10 +30,17 @@
 
 <script>
 
+import ids from 'shared/classes/ids.js';
+
 export default {
   name: 'Footer',
   components: {
   },
+  computed: {
+    packageIdURL() {
+      return 'https://suivision.xyz/package/'+ids.mainnet.timecapsule.packageId;
+    }
+  }
 }
 </script>
 

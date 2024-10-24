@@ -21,7 +21,7 @@ class Handler {
                     list: true,
                     cacheControl: true,
                     dotfiles: 'deny',
-                    immutable: false,
+                    immutable: true,
                     maxAge: 24*60*60*1000,
                     preCompressed: true,
                     prefixAvoidTrailingSlash: true,
