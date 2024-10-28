@@ -12,10 +12,11 @@
         <template v-for="(condenser) in condensers" v-bind:key="condenser.id">
 
             <Condenser :condenser="condenser" 
-                :actions="{attach: 'Attach Kettle', release: 'Release Kettle', fillsource: 'Fill Source', boil: 'Boil'}"   
+                :actions="{attach: 'Attach Kettle', release: 'Release Kettle', adjust: 'Adjust Flow Rate', fillsource: 'Fill Rewards Source', boil: 'Boil'}"   
                 @attach="(condenser)=>{ idOfCondenserToAttachKettleTo = condenser.id }"
                 @release="(condenser)=>{ releaseKettleFromCondenser(condenser.id); }"
                 @fillsource="(condenser)=>{ fillSource(condenser); }"
+                @adjust="(condenser)=>{ adjust(condenser); }"
                 @boil="(condenser)=>{ boilCondenser(condenser); }"
                 />
 
@@ -45,6 +46,7 @@
         </div>
 
         <AskAmountDialog ref="askAmountDialog" />
+        <AskFlowRateDialog ref="askFlowRateDialog" />
     </div>
 
 
@@ -56,6 +58,7 @@ import ExplorerLink from '../common/ExplorerLink.vue';
 import Condenser from './blocks/Condenser.vue';
 import Kettle from './blocks/Kettle.vue';
 import AskAmountDialog from '../ask_amount_dialog/AskAmountDialog.vue';
+import AskFlowRateDialog from './blocks/AskFlowRateDialog.vue';
 
 export default {
     name: 'YourCondensers',
@@ -65,6 +68,7 @@ export default {
         Condenser,
         Kettle,
         AskAmountDialog,
+        AskFlowRateDialog,
     },
     props: {
     },
@@ -94,6 +98,39 @@ export default {
                 return true;
             }
             return false;
+        },
+        async adjust(condenser) {
+            try {
+                const staking = Staking.getSingleton({ suiMaster: this.$store.sui.suiMaster });
+
+                const coinType = condenser.localProperties.type_r;
+                const data = await this.$refs.askFlowRateDialog.ask({
+                        coinType: coinType,
+                        condenser: condenser,
+                        flow_amount: condenser.fields.flow_amount,
+                        flow_interval: condenser.fields.flow_interval,
+                        note: 'Amount of reward coin to be distributed in period:',
+                    });
+                if (data) {
+                    await staking.updateFlowRate(condenser, data.flow_amount, data.flow_interval);
+                    this.$q.notify({
+                            spinner: true,
+                            message: 'Adjusted',
+                            color: 'positive',
+                            timeout: 4000
+                        });
+                }
+                await new Promise((res)=>setTimeout(res, 2000));
+                this.loadMore();
+            } catch (e) {
+                console.error(e);
+                this.$q.notify({
+                        message: ''+e,
+                        color: 'negative',
+                        timeout: 2000
+                    });
+
+            }
         },
         async boilCondenser(condenser) {
             const staking = new Staking({ suiMaster: this.$store.sui.suiMaster });

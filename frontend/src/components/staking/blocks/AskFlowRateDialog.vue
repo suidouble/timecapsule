@@ -11,8 +11,18 @@
                         <span class="text-primary">{{ coinName }}</span> 
                     </template>
                 </q-input>
-                <div class="">
-                    <q-slider switch-label-side v-model="amountPercent" :min="0" :max="100" label-always  label :label-value="amountPercent + '%'"  />
+
+                
+
+                <q-input outlined v-model="flow_interval" label="in period of" class="q-mt-sm">
+                </q-input>
+                <q-btn size="xs" label="1D" @click="flow_interval = 86400000" />
+                <q-btn size="xs" label="1W" @click="flow_interval = 604800000" />
+                <q-btn size="xs" label="30D" @click="flow_interval = 2592000000" />
+
+
+                <div class="text-center">
+                    {{ preview }}&nbsp;
                 </div>
 
             </q-card-section>
@@ -26,9 +36,10 @@
 
 </template>
 <script>
+import { formatCurrency } from 'shared/classes/Format.js';
 
 export default {
-	name: 'AskAmountDialog',
+	name: 'AskFlowRateDialog',
     components:{
     },
 	props: {
@@ -39,15 +50,31 @@ export default {
             coinType: null,
 
             amount: '0',
-            availableAmount: '0',
-            amountPercent: 10,
 
             coinIcon: null,
             note: '',
 
             coinName: '',
+
+            flow_amount: '',
+            flow_interval: '',
+
+            condenser: null,
         }
 	},
+	computed: {
+        preview() {
+            if (!this.flow_amount || !this.flow_interval) {
+                return '';
+            }
+
+			let diff = (this.flow_interval / 1000);
+			let day_diff = Math.floor(diff / 86400);
+
+            return formatCurrency(this.flow_amount, { decimals: this.condenser.localProperties.coin_r._metadata.decimals} ) + ' ' + this.condenser.localProperties.coin_r.symbol + ' per ' + day_diff + ' days';;
+
+        },
+    },
 	watch: {
         show: function() {
             if (this.show) {
@@ -55,42 +82,8 @@ export default {
                 this.loadCoinInfo();
             }
         },
-        amountPercent() {
-            if (this.__ignoreAmount && ( new Date() ).getTime() - this.__ignoreAmount.getTime() < 100) {
-
-                this.__ignoreAmount = null;
-
-            }  else {
-
-                this.__ignoreAmount = new Date();
-                this.amount = ''+(parseFloat(this.availableAmount, 10) * this.amountPercent / 100).toFixed(this.decimals); 
-                if (parseFloat(this.amount, 10) > parseFloat(this.availableAmount, 10)) {
-                    this.amount = this.availableAmount;
-                }
-            
-            }
-        },
         amount() {
-            if (this.__ignoreAmount && ( new Date() ).getTime() - this.__ignoreAmount.getTime() < 100) {
-
-                this.__ignoreAmount = null;
-
-            }  else {
-
-                this.__ignoreAmount = new Date();
-                if (!this.amount) {
-                    this.amount = '1.0';
-                }
-                if (parseFloat(this.amount, 10) > parseFloat(this.availableAmount, 10)) {
-                    this.amount = this.availableAmount;
-                }
-                if (parseFloat(this.amount, 10) < 0) {
-                    this.amount = '0.0';
-                }
-
-                this.amountPercent = Math.floor( (parseFloat(this.amount) / parseFloat(this.availableAmount, 10)) * 100 );
-
-            }
+            this.flow_amount = this.condenser.localProperties.coin_r.normalizeAmount(this.amount);
         },
 	},
 	methods: {
@@ -101,12 +94,19 @@ export default {
                 this.note = '';
             }
 
+            if (params.flow_amount) {
+                this.amount = params.flow_amount;
+            }
+            if (params.flow_interval) {
+                this.flow_interval = params.flow_interval;
+            }
+
+            this.condenser = params.condenser;
+
             this.coinType = params.coinType || 'sui';
 
-
             this.__askPromiseResolver = null;
-            this.__askPromiseRejecter = null;
-            this.__askPromise = new Promise((res,rej)=>{ this.__askPromiseResolver = res; this.__askPromiseRejecter = rej; });
+            this.__askPromise = new Promise((res)=>{ this.__askPromiseResolver = res; });
             await this.loadCoinInfo();
             this.showing = true;
 
@@ -117,12 +117,14 @@ export default {
                 amount = amount + '.0';
             }
 
-            return amount;
+            return {
+                flow_amount: this.flow_amount,
+                flow_interval: this.flow_interval,
+            };
         },
         onOk() {
             if (this.__askPromiseResolver) {
                 this.__askPromiseResolver();
-                this.__askPromiseRejecter = null;
                 this.showing = false;
                 this.onHide();
             }
@@ -142,11 +144,6 @@ export default {
                     this.coinIcon = suiCoin.metadata.iconUrl;
                 }
 
-                console.error(suiCoin);
-                const balance = await this.$store.sui.suiMaster.getBalance(this.coinType);
-                this.availableAmount = suiCoin.amountToString(balance);
-                this.amount = ''+(this.availableAmount * this.amountPercent / 100).toFixed(this.decimals);
-
             } catch (e) {
                 console.error(e);
             }
@@ -155,12 +152,7 @@ export default {
         },
         onHide() {
             this.$emit('hide');
-            if (this.__askPromiseRejecter) {
-                this.__askPromiseRejecter();
-            }
         },
-	},
-	computed: {
 	},
 	unmounted: function() {
 	},

@@ -2,13 +2,14 @@
 name = "timecapsule"
 version = "0.0.4"
 edition = "2024.beta"
-#published-at = "0x308e141e6f760adfe6773be39d0cdd79ca274b639e0b438cec1156a392306199"
+published-at = "0x9f246ed250ccdac3e04c1b677d22ae33c69bec173f7a647cd26a6275b492d5e0"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "mainnet" }
 SuiSystem = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-system", rev = "mainnet" }
 
 [addresses]
-timecapsule =  "0x0"
+#timecapsule =  "0x0"
+timecapsule =  "0x20abcd433df2c68f62b794d0751d3a839945dcb6776ecf9fac76d3f0324a274"
 sui =  "0000000000000000000000000000000000000000000000000000000000000002"
 sui_system =  "0000000000000000000000000000000000000000000000000000000000000003"

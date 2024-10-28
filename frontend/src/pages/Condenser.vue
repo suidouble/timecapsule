@@ -110,7 +110,8 @@ export default {
 
             await new Promise((res)=>setTimeout(res, 300));
 
-            const staking = new Staking({ suiMaster: this.$store.sui.suiMaster });
+            const staking = Staking.getSingleton({ suiMaster: this.$store.sui.suiMaster });
+            
             const condenser = await staking.getCondenser(this.condenserId);
 
             this.condenser = condenser;
@@ -122,7 +123,7 @@ export default {
         },
         interval() {
             if (!this.clocksText) {
-                this.clocksText = this.totalAsString + ' ' + this.condenser.localProperties.coin_s.symbol;
+                this.clocksText = this.totalAsString;// + ' ' + this.condenser.localProperties.coin_s.symbol;
             }
 
             // const curTime = (new Date()).getTime();

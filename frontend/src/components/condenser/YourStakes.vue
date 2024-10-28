@@ -14,28 +14,8 @@
         </q-card>
         <template v-for="(item) in items" v-bind:key="item.id">
 
-            <YourStakesItem :condenser="condenser"  :timecapsule="item" />
-<!-- 
-            <q-card class="my-card" flat bordered style="width: 100%;">
-                <q-card-section horizontal style="width: 100%;">
-                    <q-card-section class="col-5">
-                        <ExplorerLink :id="item.id" />
-                    </q-card-section>
-                    <q-card-section class="col-4">
-                        <ExplorerLink :id="item.id" />
-                    </q-card-section>
-                    <q-card-actions vertical class="justify-around q-px-md col-3" align="right" >
-                        <q-btn flat  color="red" icon="favorite" label="Clain" />
-                        <q-btn flat  color="accent" icon="bookmark" label="Unstake" />
-                    </q-card-actions>
-                </q-card-section>
-            </q-card>
+            <YourStakesItem :condenser="condenser" :timecapsule="item" @loaded="itemLoaded" />
 
-            <div>
-                {{item.id}} - 
-                {{item.rewards}}
-
-            </div> -->
         </template>
     </div>
 
@@ -58,7 +38,8 @@ export default {
     },
     data() {
         return {
-            items: [],
+            timecapsules: [], // all list
+            items: [],        // added for rendering
             isLoading: true,
         };
     },
@@ -67,24 +48,32 @@ export default {
         },
     },
     methods: {
+        itemLoaded() {
+            if (this.timecapsules.length) {
+                const item = this.timecapsules.shift();
+                this.items.push(item);
+            }
+        },
         async loadMore() {
             this.isLoading = true;
 
-            const staking = new Staking({ suiMaster: this.$store.sui.suiMaster });
-            const timecapsules = await staking.getOwnedTimecapsules();
+            const staking = Staking.getSingleton({ suiMaster: this.$store.sui.suiMaster });
+            this.timecapsules = await staking.getOwnedTimecapsules();
 
-            this.items = timecapsules;
-
-            // for (let id of timecapsulesIds) {
-            //     const rewards = await staking.getExpectedRewardForCapsule({
-            //             timecapsuleId: id,
-            //             condenserId: this.condenser.id,
-            //         }); 
-            //     this.items.push({
-            //         id: id,
-            //         rewards: rewards,
-            //     });
+            this.items = [];
+            const item1 = this.timecapsules.shift();
+            if (item1) {
+                this.items.push(item1);
+            }
+            const item2 = this.timecapsules.shift();
+            if (item2) {
+                this.items.push(item2);
+            }
+            // const item3 = this.timecapsules.shift();
+            // if (item3) {
+            //     this.items.push(item3);
             // }
+
             
             this.isLoading = false;
         },
@@ -96,11 +85,12 @@ export default {
     },
     unmounted: function() {
         clearTimeout(this.__loadMoreTimeout);
+        clearInterval(this.__attachCapsuleInterval);
     },
     mounted: function(){
         this.__loadMoreTimeout = setTimeout(()=>{
             this.loadMore();
-        }, 2500);
+        }, 500);
     }
 }
 

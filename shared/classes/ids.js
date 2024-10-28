@@ -17,7 +17,7 @@ export default {
         },
     },
     'mainnet': {
-        packageId: '0xbec32a2179483bca32d9627b317c1951af63177e91883ed2f3ca90328245836e',
+        packageId: '0x80b92600ee5e10cf728cb8e2f6443ad1aa73d87c3f237da206c3fdcf2813ec04',
         SUI: "0x2::sui::SUI",
         CLOCK: "0x0000000000000000000000000000000000000000000000000000000000000006",
         bucket: {
