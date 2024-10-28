@@ -17,13 +17,17 @@ const settings = {
     }, 
     "testnet": {
         "phrase": "coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin coin",
-        "packageId": "0x95715c5f309fc2e64192d079652380282d1157fa048e711afc7878afd4af1bf1",
+        "packageId": "0x308e141e6f760adfe6773be39d0cdd79ca274b639e0b438cec1156a392306199",
         "firstVPackageId": "0x5642b6ead93e220b692fbae8be0e865c36ec0d06287d6319889757dc58c25448",
         "storeId": "0x6657d601d835715114894717ba3b87bc7a9bd3a1fbbd5e042f53d5438b8ee390",
         "adminCapId": "0x46a2e3627a1226179a33ee579b97f69295d5217ad4b5ac01d90dc250ab7e2961",
     },
 };
 
+
+if (settings['mainnet'].phrase) {
+    throw new Error('please do not. Use --phrase cli parameter');
+}
 
 settings[selectedChain].chain = selectedChain;
 if (argv.phrase) {

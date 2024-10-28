@@ -13,7 +13,7 @@ const run = async()=>{
         throw new Error("packageId, adminCapId and storeId required")
     }
 
-    const suiMaster = new SuiMaster({provider: chain, phrase: phrase, debug: true});
+    const suiMaster = new SuiMaster({client: chain, phrase: phrase, debug: true});
 
     try {
         await suiMaster.requestSuiFromFaucet();

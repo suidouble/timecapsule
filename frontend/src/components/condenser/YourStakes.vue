@@ -1,13 +1,20 @@
 <template>
 
     <div>
-        <q-banner class="bg-primary text-white q-mt-md">
-            Your Stakes
-        </q-banner>
+        <q-card class="bg-black text-white q-mt-sm" square bordered flat>
+            <q-card-section>
+            Your Staked Time Capsules
+            </q-card-section>
+        </q-card>
 
+        <q-card class="my-card" flat bordered style="width: 100%;" v-if="isLoading">
+            <q-card-section horizontal style="width: 100%;" class="q-pa-lg">
+                <q-spinner-dots color="white" size="2em" />
+            </q-card-section>
+        </q-card>
         <template v-for="(item) in items" v-bind:key="item.id">
 
-            <YourStakesItem :condenserId="condenserId"  :timecapsuleId="item.id" />
+            <YourStakesItem :condenser="condenser"  :timecapsule="item" />
 <!-- 
             <q-card class="my-card" flat bordered style="width: 100%;">
                 <q-card-section horizontal style="width: 100%;">
@@ -47,11 +54,12 @@ export default {
         YourStakesItem,
     },
     props: {
-        condenserId: String,
+        condenser: Object,
     },
     data() {
         return {
             items: [],
+            isLoading: true,
         };
     },
     watch: {
@@ -63,18 +71,20 @@ export default {
             this.isLoading = true;
 
             const staking = new Staking({ suiMaster: this.$store.sui.suiMaster });
-            const timecapsulesIds = await staking.getOwnedTimecapsulesIds();
+            const timecapsules = await staking.getOwnedTimecapsules();
 
-            for (let id of timecapsulesIds) {
-                const rewards = await staking.getExpectedRewardForCapsule({
-                        timecapsuleId: id,
-                        condenserId: this.condenserId,
-                    }); 
-                this.items.push({
-                    id: id,
-                    rewards: rewards,
-                });
-            }
+            this.items = timecapsules;
+
+            // for (let id of timecapsulesIds) {
+            //     const rewards = await staking.getExpectedRewardForCapsule({
+            //             timecapsuleId: id,
+            //             condenserId: this.condenser.id,
+            //         }); 
+            //     this.items.push({
+            //         id: id,
+            //         rewards: rewards,
+            //     });
+            // }
             
             this.isLoading = false;
         },

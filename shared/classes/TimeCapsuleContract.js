@@ -166,7 +166,7 @@ export default class TimeCapsuleContract {
         return null;
     }
 
-    async collectFees() {
+    async collectFees(coinType) {
         // find if you own AdminCap
         Log.tag('TimeCapsuleContract').info('querying AdminCap objects...');
         const paginatedResponseOwned = await this._module.getOwnedObjects({ typeName: 'AdminCap' });
@@ -183,7 +183,13 @@ export default class TimeCapsuleContract {
         const params = [this._storeId, adminCapId];
         try {
             Log.tag('TimeCapsuleContract').info('goint to call collect_fees', params);
-            const res = await this._module.moveCall('collect_fees', params);
+            let res = null;
+            if (!coinType) {
+                res = await this._module.moveCall('collect_fees', params);
+            } else {
+                res = await this._module.moveCall('collect_coin_fees', params, [coinType]);
+            }
+
             if (res && res.status && res.status == 'success') {
                 return true;
             }

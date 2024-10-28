@@ -330,6 +330,33 @@ export default class TimeCapsule {
         return coin.amountToString(amount);
     }
 
+    async getStoredCoinAmountRaw(params = {}) {
+        const coinType = params.coinType;
+
+        const SuiObject = this.suiMaster.SuiObject;
+        const bagId = this._suiObject.fields.object_bag.fields.id.id;
+
+        const objectBag = new SuiObject({id: bagId, suiMaster: this.suiMaster});
+        const objectBagFields = await objectBag.getDynamicFields();
+
+        let amount = 0n;
+        await objectBagFields.forEach(async(field)=>{
+            if (field) {
+                if (field.name && field.name.value) {
+                    if (field.name.value == coinType ||
+                        field.name.value == coinType.split('0x').join('')) {
+                            const obj = new SuiObject({id: field.objectId, suiMaster: this.suiMaster});
+                            await obj.fetchFields();
+                            amount = BigInt(obj.fields.balance);
+                        }
+                }
+            }
+
+        });
+
+        return amount;
+    }
+
     async getStoredCoinAmount(params = {}) {
         
         // console.log(params);
@@ -349,10 +376,6 @@ export default class TimeCapsule {
                 coin._metadata = { decimals: 2 };
             }
         }
-        // console.error('meta', meta);
-        // console.error('meta', meta);
-        // console.error('meta', meta);
-        // alert(coinType);
 
         const SuiObject = this.suiMaster.SuiObject;
         const bagId = this._suiObject.fields.object_bag.fields.id.id;
