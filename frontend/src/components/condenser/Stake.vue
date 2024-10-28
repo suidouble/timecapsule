@@ -106,7 +106,7 @@ export default {
                 });
 
             const message = SampleProphecies.getRandom();
-            const targetTime = (new Date()).getTime() + (this.period * 60 *  1000);
+            const targetTime = (new Date()).getTime() + (this.period * 60 * 60 * 1000);
             const targetDrandRound = this.$store.sui.drandEncryptor.roundAt( targetTime  );
             const messageEncrypted = this.$store.sui.drandEncryptor.encryptMessageForRound(message, targetDrandRound);
 

@@ -10,7 +10,7 @@ const settings = {
     },
     "mainnet": {
         "phrase": "", // set it as cli parameter
-        "packageId": "0xc92ff78629d8852b280b41c0016fe1d4c58bf4d9aae84f6faaab0257a0fdc949",
+        "packageId": "0x9f246ed250ccdac3e04c1b677d22ae33c69bec173f7a647cd26a6275b492d5e0",
         "firstVPackageId": "0x020abcd433df2c68f62b794d0751d3a839945dcb6776ecf9fac76d3f0324a274",
         "adminCapId": "0xbcad83ff70a4d135ff2170490d5bd3718af9687af7da4902babac20d9f64288c",
         "storeId": "0xbd1124c2183396d47b3c7c2f286880eb4992cca624f7cd2a1dfae8bc8a6fe421",

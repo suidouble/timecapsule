@@ -21,16 +21,16 @@
                                 <td class="text-left"> {{type1(condenser)}} </td>
                             </tr>
                             <tr>
-                                <td class="text-left">Source</td>
+                                <td class="text-left">Rewards</td>
+                                <td class="text-left">  {{type2(condenser)}} </td>
+                            </tr>
+                            <tr>
+                                <td class="text-left">Rewards Source Pool</td>
                                 <td class="text-left"> {{sourceAmount(condenser)}} </td>
                             </tr>
                             <tr>
-                                <td class="text-left">Pool</td>
+                                <td class="text-left">Rewards Payout Pool</td>
                                 <td class="text-left"> {{poolAmount(condenser)}} </td>
-                            </tr>
-                            <tr>
-                                <td class="text-left">Rewards</td>
-                                <td class="text-left">  {{type2(condenser)}} </td>
                             </tr>
                             <tr>
                                 <td class="text-left">Flow Amount</td>
@@ -64,6 +64,7 @@
 </template>
 <script>
 import ExplorerLink from '../../common/ExplorerLink.vue';
+import { formatCurrency } from 'shared/classes/Format.js';
 
 export default {
     name: 'Condenser',
@@ -87,16 +88,19 @@ export default {
         async loadMore() {
         },
         sourceAmount(condenser) {
-            return condenser.fields.source;
+            return formatCurrency(condenser.fields.source, { decimals: condenser.localProperties.coin_r._metadata.decimals} ) + ' ' + condenser.localProperties.coin_r.symbol;
         },
         poolAmount(condenser) {
-            return condenser.fields.pool;
+            return formatCurrency(condenser.fields.pool, { decimals: condenser.localProperties.coin_r._metadata.decimals} ) + ' ' + condenser.localProperties.coin_r.symbol;
         },
         flowAmount(condenser) {
-            return condenser.fields.flow_amount;
+            return formatCurrency(condenser.fields.flow_amount, { decimals: condenser.localProperties.coin_r._metadata.decimals} ) + ' ' + condenser.localProperties.coin_r.symbol;
         },
         flowInterval(condenser) {
-            return condenser.fields.flow_interval;
+			let diff = (condenser.fields.flow_interval / 1000);
+			let day_diff = Math.floor(diff / 86400);
+
+            return 'per ' + day_diff + ' days';
         },
         kettleYesNo(condenser) {
             if (condenser.fields && condenser.fields.kettle) {

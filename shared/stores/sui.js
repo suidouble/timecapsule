@@ -5,7 +5,7 @@ import TimeCapsuleContract from '../classes/TimeCapsuleContract';
 import TimeCapsule from '../classes/TimeCapsule';
 
 import Log from 'shared/classes/Log.js';
-
+import coins from 'shared/classes/coins.js';
 
 export const useSuiStore = defineStore('sui', {
 	// convert to a function
@@ -127,6 +127,12 @@ export const useSuiStore = defineStore('sui', {
 
 			return true;
 		},
+		attachCoins(suiMaster) {
+			for (const coinType in coins) {
+				const coin = suiMaster.suiCoins.get(coinType);
+				coin._metadata = coins[coinType];
+			}
+		},
 		setSuiMaster(suiMaster) {
 			clearTimeout(this.__setSuiMasterTimeout);
 
@@ -136,7 +142,8 @@ export const useSuiStore = defineStore('sui', {
 			}
 
 			this.__setSuiMasterTimeout = setTimeout(()=>{
-
+				this.attachCoins(suiMaster);
+				
 				this.suiMaster = suiMaster;
 				if (suiMaster.address) {
 					Log.tag('$store.sui').info('your address', suiMaster.address);

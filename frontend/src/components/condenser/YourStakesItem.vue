@@ -13,6 +13,8 @@
                             {{stakedAsString}} {{ stakedCurrencyName }}
 
                             <q-btn :to="'/capsule/'+timecapsule.id" flat round size="xs"  color="white" icon="open_in_new" class="no-border" />
+
+                            <ExplorerLink :id="timecapsule.id" />
                         </div>
                         <div v-if="!mayBeUnstaked" class="q-mt-sm">
                             Till: {{ mayBeDecryptedAtAsString }}
@@ -29,9 +31,9 @@
                             <q-spinner-dots v-if="!rewardsAsString" color="white" size="2em" />
                             {{ rewardsAsString }} {{ rewardCurrencyName }}
                         </div>
-                        <q-btn v-if="needToReatach" flat  color="primary" icon="playlist_add" label="Attach" @click="claim" />
+                        <q-btn outline v-if="needToReatach" color="primary" icon="playlist_add" label="Attach To Condenser" @click="reattach" />
 
-                        <q-btn outline  color="primary" icon="favorite" label="Claim" @click="claim" />
+                        <q-btn outline  v-if="!needToReatach" color="primary" icon="favorite" label="Claim" @click="claim" />
                         
                     </q-card-actions>
                 </q-card-section>
@@ -79,7 +81,35 @@ export default {
             } else {
                 const timeDiff = (new Date()).getTime() - this.rewardsCheckedAt;
                 const extra = BigInt( Math.floor( timeDiff * (Number(this.rewardsPerMinute) / 60000) ) );
-                this.rewardsAsString = this._suiCoin.amountToString( this.rewards + extra ).padEnd(11, '0');
+                this.rewardsAsString = this._suiCoin.amountToString( this.rewards + extra );
+            }
+        },
+        async reattach() {
+            try {
+                const staking = Staking.getSingleton({ suiMaster: this.$store.sui.suiMaster });
+
+                await staking.attach({
+                        timecapsule: this.timecapsule,
+                        condenser: this.condenser,
+                    });
+
+                this.$q.notify({
+                        spinner: true,
+                        message: 'Capsule attached to condenser',
+                        color: 'positive',
+                        timeout: 4000
+                    });
+                await new Promise((res)=>setTimeout(res, 2000));
+                window.location.reload();
+            } catch (e) {
+                console.error(e);
+
+                this.$q.notify({
+                        message: ''+e,
+                        color: 'negative',
+                        timeout: 2000
+                    });
+
             }
         },
         async unstake() {
@@ -142,28 +172,33 @@ export default {
         async loadMore() {
             this.isLoading = true;
 
-            const staking = Staking.getSingleton({ suiMaster: this.$store.sui.suiMaster });
-
-            const rewards = await staking.getExpectedRewardForCapsule({
-                        timecapsule: this.timecapsule,
-                        condenser: this.condenser,
-                    }); 
-
-            this.rewards = BigInt(rewards.rewards);
-            this.rewardsPerMinute = BigInt(rewards.rewardsPerMinute);
-            this.rewardsCheckedAt = (new Date()).getTime();
-
-            this.condenserAmount = BigInt(rewards.stakeAmount);
-
-            this._suiCoin = this.$store.sui.suiMaster.suiCoins.get('SUI');
-            await this._suiCoin.getMetadata();
-
-            console.error('rewards', rewards);
-
             this.timecapsuleAmount = await this.timecapsule.getStoredCoinAmountRaw({ coinType: this.condenser.localProperties.type_s });
-            this.stakedAsString = formatCurrency(this.timecapsuleAmount, { decimals: this.condenser.localProperties.coin_s._metadata.decimals} )
+
+            if (this.timecapsuleAmount || true) {
+
+                const staking = Staking.getSingleton({ suiMaster: this.$store.sui.suiMaster });
+
+                const rewards = await staking.getExpectedRewardForCapsule({
+                            timecapsule: this.timecapsule,
+                            condenser: this.condenser,
+                        }); 
+                        
+
+                this.rewards = BigInt(rewards.rewards);
+                this.rewardsPerMinute = BigInt(rewards.rewardsPerMinute);
+                this.rewardsCheckedAt = (new Date()).getTime();
+
+                this.condenserAmount = BigInt(rewards.stakeAmount);
+
+                this._suiCoin = this.condenser.localProperties.coin_s;
+                await this._suiCoin.getMetadata();
+
+                this.stakedAsString = formatCurrency(this.timecapsuleAmount, { decimals: this.condenser.localProperties.coin_s._metadata.decimals} );
+
+            }
             
             this.isLoading = false;
+            this.$emit('loaded');
         },
     },
     computed: {

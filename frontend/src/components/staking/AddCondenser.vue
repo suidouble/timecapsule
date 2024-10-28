@@ -61,7 +61,8 @@ export default {
         },
         async make() {
             try {
-                const staking = new Staking({ suiMaster: this.$store.sui.suiMaster });
+                const staking = Staking.getSingleton({ suiMaster: this.$store.sui.suiMaster });
+                
                 await staking.makeCondenser({
                         type_s: this.type_s,
                         type_r: this.type_r,

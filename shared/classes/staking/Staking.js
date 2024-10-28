@@ -290,7 +290,7 @@ export default class Staking {
         condenser.localProperties.coin_s = coin_s;
         condenser.localProperties.coin_r = coin_r;
 
-        console.error(condenser, condenser.fields, condenser.localProperties, 'condenser');
+        // console.error(condenser, condenser.fields, condenser.localProperties, 'condenser');
 
         return condenser;
     }
@@ -307,7 +307,21 @@ export default class Staking {
         await paginated.forEach(async (suiObject)=>{
             const condenserId = suiObject.fields.condenser_id;
             const condenser = new (this._suiMaster.SuiObject)({ id: condenserId, suiMaster: this._suiMaster });
+
             await condenser.fetchFields();
+
+            const typeSplet = condenser._type.split('<')[1].split('>')[0].split(',');
+            condenser.localProperties.type_s = typeSplet[0].trim();
+            condenser.localProperties.type_r = typeSplet[1].trim();
+
+            const coin_s = await this._suiMaster.suiCoins.get(condenser.localProperties.type_s);
+            const coin_r = await this._suiMaster.suiCoins.get(condenser.localProperties.type_r);
+            await coin_s.getMetadata();
+            await coin_r.getMetadata();
+            
+            condenser.localProperties.coin_s = coin_s;
+            condenser.localProperties.coin_r = coin_r;
+
             // @todo: fetch them in bulk
             ret.push(condenser);
         });
@@ -323,15 +337,18 @@ export default class Staking {
         const max_lock_time = params.max_lock_time;
 
         const packageId = this.config().packageId;
+        // alert(packageId)
+        console.error(packageId);
         const pkg = this._suiMaster.addPackage({id: packageId});
         await pkg.isOnChain();
 
         const coinS = this._suiMaster.suiCoins.get(type_s);
         await coinS.getMetadata();
+        console.error(coinS);
         
         const coinR = this._suiMaster.suiCoins.get(type_r);
         await coinR.getMetadata();
-        
+        // alert(1)
         const flowAmountNormalized = coinR.normalizeAmount(flow_amount.indexOf('.') == -1 ? (flow_amount + '.0') : flow_amount );
 
         const args = [
@@ -347,6 +364,37 @@ export default class Staking {
         ];
 
         await pkg.modules.condenser.moveCall('mint_condenser', args, types);
+    }
+
+    async updateFlowRate(condenser, flowAmount, flowInterval) {
+        const packageId = this.config().packageId;
+        const pkg = this._suiMaster.addPackage({id: packageId});
+        await pkg.isOnChain();
+
+        const paginated = await pkg.modules.condenser.getOwnedObjects({
+            typeName: 'AdminCap',
+        });
+        let adminCap = null;
+        await paginated.forEach((suiObject)=>{
+            if (suiObject.fields.condenser_id == condenser.id) {
+                adminCap = suiObject;
+            }
+        });
+
+        const args = [
+            adminCap.id,
+            this.config().CLOCK, // clock
+            condenser.id,
+            pkg.arg('u64', flowAmount),
+            pkg.arg('u64', flowInterval),
+        ];
+
+        const types = [
+            condenser.localProperties.type_s,
+            condenser.localProperties.type_r,
+        ];
+
+        await pkg.modules.condenser.moveCall('update_flow_rate', args, types);
     }
 
 
@@ -638,6 +686,33 @@ export default class Staking {
         // await pkg.modules.fountain_periphery.moveCall('create_fountain', args, types);
     }
 
+    async attach(params = {}) {
+        const packageId = this.config().packageId;
+        const condenser = params.condenser;
+        const timecapsule = params.timecapsule;
+        const condenserId = condenser.id;
+        const timecapsuleId = timecapsule.id;
+
+        const condenserPackage = this._suiMaster.addPackage({id: packageId});
+        await condenserPackage.isOnChain();
+
+        const Transaction = (this._suiMaster.Transaction);
+        const tx = new Transaction();
+        const txInput = this._suiMaster.utils.txInput;
+
+        const moveCallResultStake = tx.moveCall({
+            target: `${packageId}::condenser::stake`,
+            arguments: [
+                tx.object(this.config().CLOCK),
+                tx.object(condenserId),
+                tx.object(timecapsuleId),                
+            ],
+            typeArguments: [condenser.localProperties.type_s, condenser.localProperties.type_r]
+        });
+
+        await condenserPackage.modules.condenser.moveCall('stake', {tx: tx});
+    }
+
     async getOwnedTimecapsules() {
         const packageId = this.config().packageId;
         const timecapsulePackageId = this.config().timecapsule.packageId.split('%packageId%').join(packageId);
@@ -782,19 +857,23 @@ export default class Staking {
         //     txCoinToSend,
         // ];
 
-        const curTime = (new Date()).getTime();
 
-        const paginated2 = await condenserPackage.modules.condenser.fetchEvents({
-            eventTypeName: 'MintEvent',
-        });
-        let type_s = null;
-        let type_r = null;
-        await paginated2.forEach((suiEvent)=>{
-            if (suiEvent.parsedJson.condenser_id == condenser.id) {
-                type_s =  new TextDecoder().decode(new Uint8Array(suiEvent.parsedJson.type_s)) ;
-                type_r =  new TextDecoder().decode(new Uint8Array(suiEvent.parsedJson.type_r)) ;
-            }
-        });
+
+        const curTime = (new Date()).getTime();
+        const type_s = condenser.localProperties.type_s;
+        const type_r = condenser.localProperties.type_r;
+
+        // const paginated2 = await condenserPackage.modules.condenser.fetchEvents({
+        //     eventTypeName: 'MintEvent',
+        // });
+        // let type_s = null;
+        // let type_r = null;
+        // await paginated2.forEach((suiEvent)=>{
+        //     if (suiEvent.parsedJson.condenser_id == condenser.id) {
+        //         type_s =  new TextDecoder().decode(new Uint8Array(suiEvent.parsedJson.type_s)) ;
+        //         type_r =  new TextDecoder().decode(new Uint8Array(suiEvent.parsedJson.type_r)) ;
+        //     }
+        // });
 
         const moveCall = tx.moveCall({
             target: `${packageId}::condenser::get_reward_info`,
@@ -820,7 +899,6 @@ export default class Staking {
         if (sims && sims.results && sims.results[0] && sims.results[0].returnValues && sims.results[0].returnValues[0]  && sims.results[0].returnValues[0][0]) {
             const b = sims.results[0].returnValues[0][0];
             const v = bcs.u64().parse(new Uint8Array(b));
-            console.error('sims.results ', sims.results);
 
             const stats = {
                 rewards: bcs.u64().parse(new Uint8Array(sims.results[0].returnValues[0][0])),
@@ -828,6 +906,7 @@ export default class Staking {
                 stakeWeight: bcs.u64().parse(new Uint8Array(sims.results[0].returnValues[2][0])),
                 stakeAmount: bcs.u64().parse(new Uint8Array(sims.results[0].returnValues[3][0])),
                 lockUntil: bcs.u64().parse(new Uint8Array(sims.results[0].returnValues[4][0])),
+                startClaimTime: bcs.u64().parse(new Uint8Array(sims.results[0].returnValues[5][0])),
             };
 
             const mayBeDecryptedAt = timecapsule.mayBeDecryptedAt;
@@ -837,6 +916,7 @@ export default class Staking {
                 // ok
             } else {
                 // adjust amount by time
+                // stats.rewards = 1n;
                 stats.rewardsPerMinute = 0;
             }
 
