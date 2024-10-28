@@ -50,6 +50,9 @@ export default {
         buttonLabel: function() {
             return 'Stake ' + this.condenser.localProperties.coin_s.name;
         },
+        isConnected: function() {
+            return this.$store.sui.address;
+        },
         connectionId: function() {
             return this.$store.sui.connectionId;
         },
@@ -162,6 +165,11 @@ export default {
             });
         },
         async stake() {
+            if (!this.isConnected) {
+                this.$store.sui.request();
+                return;
+            }
+
             try {
                 await this.doStake();
 

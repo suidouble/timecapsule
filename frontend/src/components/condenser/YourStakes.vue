@@ -46,6 +46,9 @@ export default {
     watch: {
         connectionId: function() {
         },
+        isConnected: function() {
+            this.loadMore();
+        },
     },
     methods: {
         itemLoaded() {
@@ -57,28 +60,33 @@ export default {
         async loadMore() {
             this.isLoading = true;
 
-            const staking = Staking.getSingleton({ suiMaster: this.$store.sui.suiMaster });
-            this.timecapsules = await staking.getOwnedTimecapsules();
+            if (this.isConnected) {
+                const staking = Staking.getSingleton({ suiMaster: this.$store.sui.suiMaster });
+                this.timecapsules = await staking.getOwnedTimecapsules();
 
-            this.items = [];
-            const item1 = this.timecapsules.shift();
-            if (item1) {
-                this.items.push(item1);
+                this.items = [];
+                const item1 = this.timecapsules.shift();
+                if (item1) {
+                    this.items.push(item1);
+                }
+                const item2 = this.timecapsules.shift();
+                if (item2) {
+                    this.items.push(item2);
+                }
+                // const item3 = this.timecapsules.shift();
+                // if (item3) {
+                //     this.items.push(item3);
+                // }
             }
-            const item2 = this.timecapsules.shift();
-            if (item2) {
-                this.items.push(item2);
-            }
-            // const item3 = this.timecapsules.shift();
-            // if (item3) {
-            //     this.items.push(item3);
-            // }
 
             
             this.isLoading = false;
         },
     },
     computed: {
+        isConnected: function() {
+            return this.$store.sui.address;
+        },
         connectionId: function() {
             return this.$store.sui.connectionId;
         },
