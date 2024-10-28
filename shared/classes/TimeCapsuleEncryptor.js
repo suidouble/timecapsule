@@ -5,7 +5,7 @@ import { blake2b } from 'blakejs';
 import getRandomValues from 'get-random-values';
 import { Metadata } from 'suidouble_metadata';
 
-console.log(Metadata);
+// console.log(Metadata);
 
 const PointG1 = bls12_381.G1;
 const PointG2 = bls12_381.G2;

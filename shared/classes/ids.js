@@ -34,7 +34,7 @@ export default {
             stakedProofType: "0x75b23bde4de9aca930d8c1f1780aa65ee777d8b33c3045b053a178b452222e82::fountain_core::StakeProof<0x1798f84ee72176114ddbf5525a6d964c5f8ea1b3738d08d50d0d3de4cf584884::sbuck::SBUCK, 0x2::sui::SUI>",
         },
         timecapsule: {
-            packageId: '0xc92ff78629d8852b280b41c0016fe1d4c58bf4d9aae84f6faaab0257a0fdc949',
+            packageId: '0x9f246ed250ccdac3e04c1b677d22ae33c69bec173f7a647cd26a6275b492d5e0',
             storeId: '0xbd1124c2183396d47b3c7c2f286880eb4992cca624f7cd2a1dfae8bc8a6fe421',
         },
         tokens: {
@@ -45,11 +45,22 @@ export default {
         },
     },
     'testnet': {
+        packageId: '0xcde69e01bd9cf0338880945d8f873f7afad23d911d9535cc3de89beedf8a34e9',
         SUI: "0x2::sui::SUI",
         CLOCK: "0x0000000000000000000000000000000000000000000000000000000000000006",
+        bucket: {
+            fountainPackageId: '%packageId%',
+            sBUCK: '%packageId%::test_coin::TEST_COIN',
+            //0x2f199391c6cdc4bbc2ef721a5af3c0fd46ff6bcbdfdfd17a2334bf6b11647231
+        },
+        testCoin: {
+            type: '%packageId%::test_coin::TEST_COIN',
+        },
         timecapsule: {
-            packageId: '0x95715c5f309fc2e64192d079652380282d1157fa048e711afc7878afd4af1bf1',
-            storeId: '0xbd1124c2183396d47b3c7c2f286880eb4992cca624f7cd2a1dfae8bc8a6fe421',
+            // packageId: '0x95715c5f309fc2e64192d079652380282d1157fa048e711afc7878afd4af1bf1',
+            "packageId": "0x308e141e6f760adfe6773be39d0cdd79ca274b639e0b438cec1156a392306199",
+            "firstVPackageId": "0x5642b6ead93e220b692fbae8be0e865c36ec0d06287d6319889757dc58c25448",
+            storeId: '0x6657d601d835715114894717ba3b87bc7a9bd3a1fbbd5e042f53d5438b8ee390',
         },
         tokens: {
             fud: '0xc797288b493acb9c18bd9e533568d0d88754ff617ecc6cc184d4a66bce428bdc::suidouble_liquid_coin::SUIDOUBLE_LIQUID_COIN',

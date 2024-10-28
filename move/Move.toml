@@ -1,7 +1,8 @@
 [package]
 name = "timecapsule"
-version = "0.0.1"
+version = "0.0.4"
 edition = "2024.beta"
+#published-at = "0x308e141e6f760adfe6773be39d0cdd79ca274b639e0b438cec1156a392306199"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "mainnet" }

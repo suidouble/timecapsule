@@ -14,6 +14,7 @@
                         vertical
                         class="text-teal"
                         >
+                    <q-tab name="timecapsule" icon="schedule" label="TimeCapsule" />
                     <q-tab name="local" icon="movie" label="Localnet Setup" />
                     <q-tab name="add_kettle" icon="water" label="Add Kettle" />
                     <q-tab name="your_kettles" icon="water" label="Your Kettles" />
@@ -35,6 +36,7 @@
                     transition-prev="jump-up"
                     transition-next="jump-up"
                     >
+                        <q-tab-panel name="timecapsule"><TimeCapsuleAdmin /></q-tab-panel>
                         <q-tab-panel name="local"><LocalnetSetup /></q-tab-panel>
                         <q-tab-panel name="add_kettle"><AddKettle /></q-tab-panel>
                         <q-tab-panel name="your_kettles"><YourKettles /></q-tab-panel>
@@ -59,6 +61,8 @@ import LocalnetSetup from 'components/staking/LocalnetSetup.vue';
 import AddCondenser from 'components/staking/AddCondenser.vue';
 import YourCondensers from 'components/staking/YourCondensers.vue';
 
+import TimeCapsuleAdmin from 'components/staking/TimeCapsuleAdmin.vue';
+
 export default {
 	name: 'StakingAdmin',
 	title: 'Staking Admin',
@@ -73,6 +77,8 @@ export default {
         LocalnetSetup,
         AddCondenser,
         YourCondensers,
+
+        TimeCapsuleAdmin,
     },
 	data() {
 		return {
