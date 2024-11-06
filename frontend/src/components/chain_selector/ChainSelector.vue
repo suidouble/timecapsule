@@ -17,7 +17,7 @@
             </q-list>
 
         </q-btn-dropdown>
-        <SignInWithSui v-if="defaultChain" @adapter="onAdapter" :defaultChain="defaultChain" @wrongchain="onWrongChain" @suiMaster="onSuiMaster" ref="sui" :visible="false" />
+        <SignInWithSui v-if="defaultChain" @displayAddress="onDisplayAddress" @adapter="onAdapter" :defaultChain="defaultChain" @wrongchain="onWrongChain" @suiMaster="onSuiMaster" ref="sui" :visible="false" />
     </div>
 
 </template>
@@ -74,6 +74,9 @@ export default {
         doLogout() {
             this.$q.localStorage.set('preferredAdapter', null);
             location.reload();
+        },
+        onDisplayAddress(displayAddress) {
+            this.displayAddress = displayAddress;
         },
         onAdapter(adapter) {
             this.$q.localStorage.set('preferredAdapter', adapter.name);

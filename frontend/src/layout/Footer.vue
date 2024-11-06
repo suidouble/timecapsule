@@ -14,10 +14,11 @@
         </div>
         <div class="fit row no-wrap justify-center items-start content-start">
 
-          <q-btn flat type="a" to="/about" label="About" />
-          <q-btn flat type="a" href="https://github.com/suidouble/timecapsule" label="GitHub" />
-          <q-btn flat type="a" :href="packageIdURL" target="_blank" label="PackageID" />
-          <q-btn flat type="a" href="https://twitter.com/suidouble" target="_blank" label="Twitter" />
+          <q-btn flat type="a" to="/about" label="about" />
+          <q-btn flat type="a" href="https://github.com/suidouble/timecapsule" label="github" />
+          <q-btn flat type="a" href="https://suidouble.github.io/vue-sui/" target="_blank" label="vue-sui" />
+          <q-btn flat type="a" :href="packageIdURL" target="_blank" label="package_id" />
+          <q-btn flat type="a" href="https://twitter.com/suidouble" target="_blank" label="twitter" />
 
  
         </div>

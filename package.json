@@ -1,6 +1,6 @@
 {
   "name": "hexcapsule",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
     "test": "tap -j=1 ./test/*.test.js",
     "coverage": "tap -j=1 ./test/*.test.js",
@@ -19,7 +19,7 @@
     "fastify": "^4.27.0"
   },
   "devDependencies": {
-    "@mysten/bcs": "^1.0.4",
+    "@mysten/bcs": "^1.1.0",
     "@noble/curves": "^1.6.0",
     "@noble/hashes": "^1.5.0",
     "@polymedia/coinmeta": "^0.0.16",
@@ -32,13 +32,13 @@
     "minimist": "^1.2.8",
     "pinia": "^2.1.7",
     "quasar": "^2.16.4",
-    "suidouble": "1.13.0-2",
+    "suidouble": "1.14.2",
     "suidouble_metadata": "^0.0.10",
     "tap": "^16.3.10",
     "vite": "^5.2.12",
     "vue": "^3.4.27",
     "vue-router": "^4.3.2",
-    "vue-sui": "1.13.0"
+    "vue-sui": "1.14.2"
   },
   "eslintConfig": {
     "root": true,
