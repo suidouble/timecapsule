@@ -1,6 +1,6 @@
 <template>
 
-<q-scroll-area style="height: calc(97vh - 150px); max-width: 300px;">
+<q-scroll-area class="list_timecapsules_area">
     <div class="timecapsule_links">
         <template v-for="(timeCapsule) in timeCapsules" v-bind:key="timeCapsule.id">
         <RouterLink :to="'/capsule/'+timeCapsule.id">
@@ -28,6 +28,50 @@
 </q-scroll-area>
     
 </template>
+<style lang="css">
+
+    .list_timecapsules_area {
+        height: calc(97vh - 160px);
+        border-top: 1px solid rgba(255, 255, 255, 0.28);
+    }
+
+    @media (min-width: 1440px) {
+        .list_timecapsules_area {
+            max-width: 300px;
+        }
+    }
+
+    .timecapsule_links a {
+        text-decoration: none;
+    }
+
+    .timecapsule_link {
+        width: 100%;
+        overflow: hidden;
+        padding: 8px;
+        margin-top: -2px;
+        text-decoration: none;
+    }
+
+    .timecapsule_link_left {
+        float: left;
+        width: 30px;
+    }
+
+    .timecapsule_link_left_own {
+        width: 5px;
+        background: red;
+        float: left;
+        height: 38px;
+        margin: -8px 8px -8px -8px;
+        background-color: transparent;
+    }
+
+    .timecapsule_link_left_own_by_you {
+        background-color: rgba(255,255,255,0.5);
+    }
+
+</style>
 <script>
     // import DateHuman from 'shared/components/Helpers/DateHuman.vue';
     
@@ -73,37 +117,4 @@
             }, 1000);
         }
     }
-    </script>
-    <style lang="css">
-    
-        .timecapsule_links a {
-            text-decoration: none;
-        }
-
-        .timecapsule_link {
-            width: 100%;
-            overflow: hidden;
-            padding: 8px;
-            margin-top: -2px;
-            text-decoration: none;
-        }
-
-        .timecapsule_link_left {
-            float: left;
-            width: 30px;
-        }
-
-        .timecapsule_link_left_own {
-            width: 5px;
-            background: red;
-            float: left;
-            height: 38px;
-            margin: -8px 8px -8px -8px;
-            background-color: transparent;
-        }
-
-        .timecapsule_link_left_own_by_you {
-            background-color: rgba(255,255,255,0.5);
-        }
-    
-    </style>
+</script>

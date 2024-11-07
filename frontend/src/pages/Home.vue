@@ -1,10 +1,10 @@
 <template>
 
     <div class="row">
-        <div class="col-2">
+        <div class="col-lg-2 col-12">
         &nbsp;
         </div>
-        <div class="col-8">
+        <div class="col-lg-8 col-12">
 
             <div style="margin: 0 auto; width: 400px;">
                 <div style="position: fixed; top: 50vh">
@@ -19,8 +19,9 @@
             <MintTimeCapsuleDialog :show="showMintPopup" @hide="showMintPopup = false;" />
 
         </div>
-        <div class="col-2">
+        <div class="col-lg-2 col-12">
 
+            <div style="height: 60vh;" class="lt-lg"></div>
             <ListTimecapsules />
 
         </div>

@@ -34,8 +34,13 @@
 
 
             <q-dialog v-model="showInfo" position="right" seamless flat square v-if="!isDecrypting">
-                <q-card style="width: 350px">
+
+                <q-card style="width: 350px;" class="show_info_card" :class="{show_info_card_hidden: showInfoHidden}" >
+
                     <q-linear-progress :value="0.6" color="white" />
+
+                    <q-btn class="lt-lg" flat @click="showInfoHidden = !showInfoHidden"  round dense :icon="showInfoHidden ? 'arrow_back' : 'double_arrow'" />
+
                     <TimecapsuleInfo :timecapsule="timecapsule" @refresh="loadInfo" />
 
                 </q-card>
@@ -48,6 +53,72 @@
     </div>
 
 </template>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style>
+    .show_info_card {
+        width: 350px;
+        transform: translateX(0px);
+        opacity: 1;
+        transition: all 0.3s ease;
+    }
+
+    .show_info_card_hidden {
+        opacity: 0.5;
+        transform: translateX(320px);
+    }
+
+    h6 {
+        font-size: 16px;
+        font-weight: bold;
+        margin: 0 0 16px 0;
+    }
+
+    h5 {
+        margin: 0 0 16px 0;
+    }
+
+    .active_one {
+        font-weight: bold;
+    }
+
+    .content_info {
+        opacity: 0;
+        cursor: pointer;
+        text-align: center; 
+        margin-top: -170px; 
+        font-size: 20px;
+        transition: opacity 1s;
+    }
+
+    .content_info.content_info_visible {
+        opacity: 1;
+    }
+
+    .content_info_decrypted {
+        opacity: 0;
+        text-align: center; 
+        margin-top: 0px; 
+        font-size: 20px;
+        transition: opacity 1s;    
+        width: 400px;
+        word-break: break-word;
+    }
+    .content_info_decrypted.content_info_visible {
+        opacity: 1;
+    }
+
+    .timecapsule_container {
+        opacity: 1;
+        transition: opacity 0.5s ease;
+    }
+    .timecapsule_container.decrypting {
+        opacity: 0.5;
+    }
+
+
+</style>
+
 
 <script>
 import ParticleClocks2 from 'shared/components/ParticleClocks/ParticleClocks2.vue';
@@ -76,6 +147,7 @@ export default {
             textOnClock: '',
 
             showInfo: true,
+            showInfoHidden: false,
 
             showContent: false,
 
@@ -218,57 +290,3 @@ export default {
     },
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
-    h6 {
-        font-size: 16px;
-        font-weight: bold;
-        margin: 0 0 16px 0;
-    }
-
-    h5 {
-        margin: 0 0 16px 0;
-    }
-
-    .active_one {
-        font-weight: bold;
-    }
-
-    .content_info {
-        opacity: 0;
-        cursor: pointer;
-        text-align: center; 
-        margin-top: -170px; 
-        font-size: 20px;
-        transition: opacity 1s;
-    }
-
-    .content_info.content_info_visible {
-        opacity: 1;
-    }
-
-    .content_info_decrypted {
-        opacity: 0;
-        text-align: center; 
-        margin-top: 0px; 
-        font-size: 20px;
-        transition: opacity 1s;    
-        width: 400px;
-        word-break: break-word;
-    }
-    .content_info_decrypted.content_info_visible {
-        opacity: 1;
-    }
-
-    .timecapsule_container {
-        opacity: 1;
-        transition: opacity 0.5s ease;
-    }
-    .timecapsule_container.decrypting {
-        opacity: 0.5;
-    }
-
-
-</style>
-
